@@ -70,8 +70,8 @@ export const site = {
   // Kennzahlen (Startseite + Unternehmen). Werte hier ändern – Zähler und Schema.org passen sich an.
   stats: {
     foundingYear: 2020,
-    employees: 40,
-    projects: 110,
+    employees: 8,
+    projects: 20,
   },
 
   claims: {
