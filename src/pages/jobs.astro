@@ -1,0 +1,106 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ApplicationForm from '../components/ApplicationForm.astro';
+import Diagonal from '../components/Diagonal.astro';
+import { site } from '../config/site';
+import { ph } from '../lib/text';
+
+const jobs = await Promise.all(
+  (await getCollection('jobs'))
+    .filter((j) => j.data.aktiv)
+    .sort((a, b) => b.data.order - a.data.order)
+    .map(async (job) => ({ job, Content: (await render(job)).Content })),
+);
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Jobs', path: '/jobs/' },
+];
+const offer = [
+  'Abwechslungsreiche Baustellen in der Region Zug',
+  'Kleines Team, kurze Wege, direkte Ansprechpersonen',
+  '[PLATZHALTER: Anstellungsbedingungen, z. B. GAV Bauhauptgewerbe, Ferien, Weiterbildung]',
+  '[PLATZHALTER: Arbeitskleidung / Maschinen / weitere Benefits]',
+];
+---
+
+<BaseLayout
+  title="Jobs im Tiefbau Zug | Bau Concept Schweiz"
+  description="Jobs im Tiefbau und Strassenbau in Zug: Werde Teil von Bau Concept Schweiz. Offene Stellen und Kurzbewerbung in zwei Minuten."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero
+    kicker="Jobs"
+    title="Arbeiten bei Bau Concept"
+    lead="Du packst gern an, arbeitest draussen und willst am Abend sehen, was du geschafft hast? Dann passt du zu uns."
+    breadcrumbs={breadcrumbs}
+  >
+    <a href="#kurzbewerbung" class="btn-primary mt-8">Jetzt kurz bewerben</a>
+  </PageHero>
+
+  <section class="section pt-8 sm:pt-10 lg:pt-12" aria-labelledby="stellen">
+    <div class="container-x">
+      <SectionHeader kicker="Offene Stellen" title="Aktuelle Stellen" id="stellen" />
+      {jobs.length === 0 && (
+        <p class="text-lg text-muted">Im Moment sind keine Stellen ausgeschrieben. Eine Initiativbewerbung ist trotzdem jederzeit willkommen.</p>
+      )}
+      <div class="space-y-6">
+        {jobs.map(({ job, Content }) => (
+            <article class="border border-line border-l-4 border-l-bronze bg-white p-6 sm:p-8">
+              <h3 class="text-2xl sm:text-3xl" set:html={ph(job.data.title)} />
+              <p class="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-muted">
+                <span class="flex items-center gap-2"><Icon name="clock" class="size-5 text-bronze-700" /><span set:html={ph(job.data.pensum)} /></span>
+                <span class="flex items-center gap-2"><Icon name="pin" class="size-5 text-bronze-700" />{site.address.city}</span>
+                <span>Eintritt: <span set:html={ph(job.data.eintritt)} /></span>
+              </p>
+              <div class="prose-bc mt-4 text-muted"><Content /></div>
+              <div class="mt-4 grid grid-cols-1 gap-8 md:grid-cols-2">
+                <div>
+                  <h4 class="font-display text-xl font-bold uppercase">Deine Aufgaben</h4>
+                  <ul class="mt-3 space-y-2">{job.data.aufgaben.map((a) => <li class="flex gap-3"><Icon name="check" class="mt-1 size-5 shrink-0 text-bronze-700" strokeWidth={2.2} /><span set:html={ph(a)} /></li>)}</ul>
+                </div>
+                <div>
+                  <h4 class="font-display text-xl font-bold uppercase">Das bringst du mit</h4>
+                  <ul class="mt-3 space-y-2">{job.data.profil.map((a) => <li class="flex gap-3"><Icon name="check" class="mt-1 size-5 shrink-0 text-bronze-700" strokeWidth={2.2} /><span set:html={ph(a)} /></li>)}</ul>
+                </div>
+              </div>
+            </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-stone" aria-labelledby="angebot">
+    <div class="container-x">
+      <SectionHeader kicker="Was wir bieten" title="Das erwartet dich" id="angebot" />
+      <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {offer.map((o) => (
+          <li class="flex gap-3 bg-white p-5 text-lg"><Icon name="check" class="mt-1 size-5 shrink-0 text-bronze-700" strokeWidth={2.2} /><span set:html={ph(o)} /></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <Diagonal from="stone" to="ink" flip />
+  <section id="kurzbewerbung" class="section bg-ink text-white" aria-labelledby="bewerbung-titel">
+    <div class="container-x grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
+      <div>
+        <p class="kicker text-bronze-300">Kurzbewerbung</p>
+        <h2 id="bewerbung-titel">In zwei Minuten beworben</h2>
+        <p class="mt-5 text-lg text-muted-dark">
+          Kein langes Motivationsschreiben nötig. Name, Telefonnummer und kurz, was du bisher gemacht hast – wir rufen dich an.
+        </p>
+        <p class="mt-8 text-muted-dark">Lieber direkt anrufen?</p>
+        <a href={site.phone.href} class="mt-2 inline-flex items-center gap-3 font-display text-3xl font-bold text-white no-underline hover:text-bronze-300">
+          <Icon name="phone" class="size-7 text-bronze" />{site.phone.display}
+        </a>
+      </div>
+      <div class="bg-white p-6 text-ink sm:p-10">
+        <ApplicationForm />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,90 @@
+---
+import { site, upload } from '../config/site';
+import { services, type ServiceSlug } from '../data/services';
+import FormStatus from './FormStatus.astro';
+interface Props {
+  preselect?: ServiceSlug;
+  /** short = Kurzformular (Startseite), full = alle Felder inkl. Upload */
+  variant?: 'short' | 'full';
+  id?: string;
+}
+const { preselect, variant = 'full', id = 'anfrageformular' } = Astro.props;
+const full = variant === 'full';
+---
+
+<form
+  id={id}
+  action="/api/anfrage/"
+  method="post"
+  enctype="multipart/form-data"
+  class="space-y-5"
+  data-ajax-form
+  data-max-bytes={upload.maxTotalBytes}
+
+>
+  <p class="text-sm text-muted">Felder mit <span aria-hidden="true">*</span><span class="sr-only">Stern</span> sind Pflichtfelder.</p>
+
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for={`${id}-name`} class="field-label">Name *</label>
+      <input id={`${id}-name`} name="name" type="text" required autocomplete="name" class="field" />
+    </div>
+    <div>
+      <label for={`${id}-email`} class="field-label">E-Mail *</label>
+      <input id={`${id}-email`} name="email" type="email" required autocomplete="email" class="field" />
+    </div>
+    <div>
+      <label for={`${id}-phone`} class="field-label">Telefon <span class="font-normal text-muted">(optional)</span></label>
+      <input id={`${id}-phone`} name="telefon" type="tel" autocomplete="tel" class="field" />
+    </div>
+    <div>
+      <label for={`${id}-ort`} class="field-label">Projektort *</label>
+      <input id={`${id}-ort`} name="projektort" type="text" required class="field" placeholder="z. B. Baar, Dorfstrasse" />
+    </div>
+  </div>
+
+  <div class:list={['grid grid-cols-1 gap-5', full && 'sm:grid-cols-2']}>
+    <div>
+      <label for={`${id}-leistung`} class="field-label">Leistung <span class="font-normal text-muted">(optional)</span></label>
+      <select id={`${id}-leistung`} name="leistung" class="field">
+        <option value="">Bitte wählen</option>
+        {services.map((s) => <option value={s.title} selected={s.slug === preselect}>{s.title}</option>)}
+        <option value="Mehrere / unklar">Mehrere / noch unklar</option>
+      </select>
+    </div>
+    {full && (
+      <div>
+        <label for={`${id}-zeitraum`} class="field-label">Gewünschter Zeitraum <span class="font-normal text-muted">(optional)</span></label>
+        <input id={`${id}-zeitraum`} name="zeitraum" type="text" class="field" placeholder="z. B. Frühling 2027" />
+      </div>
+    )}
+  </div>
+
+  <div>
+    <label for={`${id}-msg`} class="field-label">Kurzbeschreibung Ihres Vorhabens *</label>
+    <textarea id={`${id}-msg`} name="nachricht" required rows={full ? 6 : 4} class="field" placeholder="Was soll gemacht werden? Ungefähre Grösse, Zufahrt, Besonderheiten …"></textarea>
+  </div>
+
+  {full && (
+    <div>
+      <label for={`${id}-files`} class="field-label">Pläne oder Fotos <span class="font-normal text-muted">(optional)</span></label>
+      <input id={`${id}-files`} name="dateien" type="file" multiple accept={upload.accept} aria-describedby={`${id}-files-hint`} class="block w-full text-sm file:mr-4 file:min-h-11 file:cursor-pointer file:border-0 file:bg-ink file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-ink-700" />
+      <p id={`${id}-files-hint`} class="mt-1.5 text-sm text-muted">PDF, JPG oder PNG, zusammen max. {upload.maxLabel}. Grössere Dateien senden Sie uns bitte per E-Mail an <a href={`mailto:${site.email}`} class="link">{site.email}</a>.</p>
+    </div>
+  )}
+
+  <!-- Honeypot: für Menschen unsichtbar, Bots füllen es aus -->
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+    <label for={`${id}-website`}>Website (nicht ausfüllen)</label>
+    <input id={`${id}-website`} name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name="_t" value="" data-form-time />
+
+  <p class="text-sm text-muted">
+    Mit dem Absenden stimmen Sie zu, dass wir Ihre Angaben zur Bearbeitung der Anfrage verwenden. Details in der <a href="/datenschutz/" class="link">Datenschutzerklärung</a>.
+  </p>
+
+  <button type="submit" class="btn-primary w-full sm:w-auto">Anfrage senden</button>
+
+  <FormStatus successTitle="Vielen Dank – Ihre Anfrage ist bei uns." successText={`Wir melden uns ${site.responseTime}. Falls es dringend ist, rufen Sie uns an: ${site.phone.display}.`} />
+</form>

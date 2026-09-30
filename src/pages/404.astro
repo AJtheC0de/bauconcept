@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../config/site';
+---
+
+<BaseLayout title="Seite nicht gefunden | Bau Concept Schweiz" description="Die gesuchte Seite existiert nicht." noindex>
+  <section class="section bg-ink text-white">
+    <div class="container-x max-w-3xl">
+      <p class="kicker text-bronze-300">Fehler 404</p>
+      <h1>Hier wurde noch nicht gebaut.</h1>
+      <p class="mt-6 text-lg text-muted-dark">Die Seite gibt es nicht (mehr). Vielleicht hilft einer dieser Links:</p>
+      <ul class="mt-6 space-y-2 text-lg">
+        <li><a href="/" class="link-dark">Startseite</a></li>
+        <li><a href="/leistungen/" class="link-dark">Leistungen</a></li>
+        <li><a href="/kontakt/" class="link-dark">Kontakt</a> · <a href={site.phone.href} class="link-dark">{site.phone.display}</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,171 @@
+---
+/**
+ * Partner-Band. Ab MARQUEE_MIN Partnern endlos laufend (reines CSS, pausiert bei Hover/Fokus),
+ * darunter als ruhige, zentrierte Reihe. Bei «Bewegung reduzieren» immer statisch.
+ */
+import { Image } from 'astro:assets';
+import { partners, MARQUEE_MIN, type Partner } from '../data/partners';
+
+interface Props {
+  label?: string;
+}
+const { label = 'Partner' } = Astro.props;
+const marquee = partners.length >= MARQUEE_MIN;
+// Im Laufband mindestens 8 Einträge pro Durchlauf, damit es auch auf breiten Bildschirmen gefüllt ist
+const base: Partner[] = marquee
+  ? Array.from({ length: Math.ceil(8 / partners.length) }, () => partners).flat()
+  : partners;
+// Optisch gleich gross: gleiche Fläche statt gleiche Höhe (breite Logos werden niedriger)
+const logoHeight = (p: Partner) => (p.logo ? Math.round(Math.min(44, Math.max(24, Math.sqrt(5900 / (p.logo.width / p.logo.height))))) : 0);
+---
+
+<div class:list={['partners py-9', marquee ? 'is-marquee' : 'is-static']} role="region" aria-label={label}>
+  <p class="mb-6 text-center text-xs font-semibold uppercase tracking-[0.25em] text-muted-dark">{label}</p>
+  <div class="partners-viewport">
+    <div class="partners-track">
+      {(marquee ? [0, 1] : [0]).map((copy) => (
+        <ul class="partners-list" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {base.map((p, i) => {
+            // Wiederholungen nur optisch – Screenreader hören jeden Partner genau einmal
+            const dup = copy === 1 || i >= partners.length;
+            const inner = p.logo ? (
+              <Image
+                src={p.logo}
+                alt={dup ? '' : p.name}
+                height={logoHeight(p)}
+                width={Math.round((logoHeight(p) * p.logo.width) / p.logo.height)}
+                densities={[1, 2]}
+                loading="lazy"
+                class="partner-logo block w-auto"
+                style={`height:${logoHeight(p)}px`}
+              />
+            ) : (
+              <span class="partner-word">{p.name}</span>
+            );
+            return (
+              <li class="partners-item" style={`--i:${i}`} aria-hidden={dup && copy === 0 ? 'true' : undefined}>
+                {p.url ? (
+                  <a href={p.url} rel="noopener" target="_blank" tabindex={dup ? -1 : undefined} class="block no-underline">
+                    {inner}
+                    <span class="sr-only"> (Website, neues Fenster)</span>
+                  </a>
+                ) : (
+                  inner
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .partners-list {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .partners-item {
+    padding-inline: clamp(1.75rem, 4vw, 3.5rem);
+    color: rgb(255 255 255 / 0.5);
+    transition: color 0.3s ease;
+  }
+  .partners-item:hover {
+    color: #fff;
+  }
+  .partners-item :global(.partner-logo) {
+    opacity: 0.55;
+    transition: opacity 0.3s ease;
+  }
+  .partners-item:hover :global(.partner-logo) {
+    opacity: 1;
+  }
+  .partner-word {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+  }
+
+  /* Statische Reihe (wenige Partner): Trennstriche + gestaffeltes Einblenden */
+  .is-static .partners-list {
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 1.25rem;
+  }
+  .is-static .partners-item + .partners-item {
+    border-left: 1px solid rgb(255 255 255 / 0.12);
+  }
+  /* Schmale Screens: gleich breite Spalten statt Umbruch (kein verwaister Trennstrich) */
+  @media (width < 30rem) {
+    .is-static .partners-list {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+    }
+    .is-static .partners-item {
+      padding-inline: 0.5rem;
+      text-align: center;
+    }
+    .is-static .partner-word {
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+    }
+  }
+  :global(.is-armed) .is-static .partners-item {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.6s ease calc(var(--i) * 140ms + 700ms),
+      transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 140ms + 700ms),
+      color 0.3s ease;
+  }
+  :global(.is-active) .is-static .partners-item {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Laufband (viele Partner) */
+  .is-marquee .partners-viewport {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+  .is-marquee .partners-track {
+    display: flex;
+    width: max-content;
+    animation: partners-marquee 48s linear infinite;
+  }
+  .is-marquee:hover .partners-track,
+  .is-marquee:focus-within .partners-track {
+    animation-play-state: paused;
+  }
+  @keyframes partners-marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .is-marquee .partners-viewport {
+      mask-image: none;
+    }
+    .is-marquee .partners-track {
+      animation: none;
+      width: auto;
+      justify-content: center;
+    }
+    .is-marquee .partners-list {
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: 1.5rem;
+    }
+    .is-marquee .partners-list[aria-hidden] {
+      display: none;
+    }
+  }
+</style>

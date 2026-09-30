@@ -1,0 +1,376 @@
+---
+/**
+ * Header
+ * - Desktop: Infozeile (scrollt weg, top negativ = reines CSS) + klebende Hauptleiste
+ * - «Leistungen» mit Dropdown (Hover + Klick/Tastatur)
+ * - Beim Scrollen: leicht transparent + Bronze-Lesefortschritt
+ * - Mobile: Vollbild-Menü (Dialog, Fokus bleibt drin, Esc schliesst)
+ */
+import { Image } from 'astro:assets';
+import { site, nav, fullAddress } from '../config/site';
+import { services } from '../data/services';
+import logo from '../assets/brand/logo-horizontal-light.png';
+import Icon from './Icon.astro';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => path === href || path.startsWith(href);
+---
+
+<header class="site-header vt-header sticky top-0 z-40 text-white lg:-top-9" data-header>
+  <!-- Infozeile (nur Desktop) -->
+  <div class="hidden h-9 border-b border-white/10 bg-ink lg:block">
+    <div class="container-x flex h-full items-center justify-between text-[0.8rem] text-muted-dark">
+      <p class="font-display font-semibold uppercase tracking-[0.2em]">Tiefbau · Strassenbau · Kanton Zug</p>
+      <ul class="flex items-center gap-6">
+        <li><a href="/kontakt/#anfahrt" class="topbar-link"><Icon name="pin" class="size-3.5 text-bronze" />{fullAddress}</a></li>
+        <li><a href={`mailto:${site.email}`} class="topbar-link"><Icon name="mail" class="size-3.5 text-bronze" />{site.email}</a></li>
+        <li class="xl:hidden"><a href={site.phone.href} class="topbar-link"><Icon name="phone" class="size-3.5 text-bronze" />{site.phone.display}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Hauptleiste -->
+  <div class="mainbar relative border-b border-white/10 bg-ink">
+    <div class="container-x flex h-[4.25rem] items-center justify-between gap-6 lg:h-20">
+      <a href="/" class="shrink-0" aria-label={`${site.name} – zur Startseite`}>
+        <Image src={logo} alt="" width={186} height={45} densities={[1, 2]} loading="eager" class="h-9 w-auto lg:h-10" />
+      </a>
+
+      <nav aria-label="Hauptnavigation" class="hidden h-full lg:block">
+        <ul class="flex h-full items-center gap-1 font-display text-[0.95rem] font-semibold uppercase tracking-[0.14em]">
+          {
+            nav.map((item) =>
+              item.href === '/leistungen/' ? (
+                <li class="dd relative flex h-full items-center" data-dd>
+                  <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} class:list={['navlink', isActive(item.href) && 'is-active']}>
+                    {item.label}
+                  </a>
+                  <button type="button" class="dd-toggle -ml-2 flex size-8 items-center justify-center text-white/60 hover:text-white" aria-expanded="false" aria-controls="dd-leistungen" data-dd-toggle>
+                    <span class="sr-only">Leistungen-Menü öffnen</span>
+                    <Icon name="chevron" class="dd-chevron size-4" strokeWidth={2} />
+                  </button>
+
+                  <div id="dd-leistungen" class="dd-panel absolute top-full left-1/2 w-[38rem] pt-px">
+                    <div class="border-t-2 border-bronze bg-white p-3 text-ink shadow-[0_30px_60px_-20px_rgb(0_0_0/0.45)]">
+                      <ul class="grid grid-cols-2 gap-1 font-sans text-base font-normal normal-case tracking-normal">
+                        {services.map((s) => (
+                          <li>
+                            <a href={`/leistungen/${s.slug}/`} class="dd-item group flex gap-4 p-4 no-underline transition-colors hover:bg-stone focus-visible:bg-stone">
+                              <span class="flex size-11 shrink-0 items-center justify-center border border-line text-bronze-700 transition-colors group-hover:border-bronze group-hover:bg-bronze group-hover:text-ink">
+                                <Icon name={s.icon} class="size-6" strokeWidth={1.5} />
+                              </span>
+                              <span>
+                                <span class="block font-display text-lg leading-tight font-bold uppercase">{s.title}</span>
+                                <span class="mt-1 block text-sm text-muted">{s.tags.slice(0, 3).join(' · ')}</span>
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                      <a href="/leistungen/" class="mt-1 flex items-center justify-between bg-ink px-4 py-3 font-display text-sm font-semibold uppercase tracking-[0.16em] text-white no-underline hover:text-bronze-300">
+                        Alle Leistungen im Überblick <Icon name="arrow" class="size-4" />
+                      </a>
+                    </div>
+                  </div>
+                </li>
+              ) : (
+                <li class="flex h-full items-center">
+                  <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} class:list={['navlink', isActive(item.href) && 'is-active']}>
+                    {item.label}
+                  </a>
+                </li>
+              ),
+            )
+          }
+        </ul>
+      </nav>
+
+      <div class="flex items-center gap-2 lg:gap-6">
+        <a href={site.phone.href} class="group hidden items-center gap-3 text-white no-underline xl:flex">
+          <span class="flex size-10 items-center justify-center border border-white/15 text-bronze transition-colors group-hover:border-bronze group-hover:bg-bronze group-hover:text-ink">
+            <Icon name="phone" class="size-[1.1rem]" />
+          </span>
+          <span class="leading-tight">
+            <span class="block text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-dark">Direkt anrufen</span>
+            <span class="font-display text-lg font-semibold tracking-wide group-hover:text-bronze-300">{site.phone.display}</span>
+          </span>
+        </a>
+        <a href="/kontakt/" class="cta-cut group hidden items-center gap-2 bg-bronze py-3 pr-6 pl-5 font-display text-[0.95rem] font-semibold uppercase tracking-[0.12em] text-ink no-underline transition-colors hover:bg-bronze-300 sm:inline-flex">
+          Projekt anfragen <Icon name="arrow" class="size-4 transition-transform group-hover:translate-x-0.5" />
+        </a>
+
+        <!-- Mobile -->
+        <a href={site.phone.href} class="flex size-11 items-center justify-center border border-white/15 text-bronze lg:hidden" aria-label={`Anrufen: ${site.phone.display}`}>
+          <Icon name="phone" class="size-5" />
+        </a>
+        <button type="button" class="burger -mr-1 flex size-11 items-center justify-center lg:hidden" aria-expanded="false" aria-controls="mobile-menu" data-menu-open>
+          <span class="sr-only">Menü öffnen</span>
+          <span class="burger-lines" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
+      </div>
+    </div>
+    <div class="scroll-progress absolute inset-x-0 -bottom-px h-0.5 origin-left bg-bronze" aria-hidden="true"></div>
+  </div>
+</header>
+
+<!-- Mobiles Vollbild-Menü (ausserhalb des Headers, damit position:fixed sauber greift) -->
+<div id="mobile-menu" class="mmenu fixed inset-0 z-50 flex flex-col bg-ink text-white lg:hidden" role="dialog" aria-modal="true" aria-label="Menü" hidden data-menu>
+  <div class="container-x flex h-[4.25rem] shrink-0 items-center justify-between border-b border-white/10">
+    <a href="/" aria-label={`${site.name} – zur Startseite`}>
+      <Image src={logo} alt="" width={186} height={45} densities={[1, 2]} class="h-9 w-auto" />
+    </a>
+    <button type="button" class="burger is-open -mr-1 flex size-11 items-center justify-center" data-menu-close>
+      <span class="sr-only">Menü schliessen</span>
+      <span class="burger-lines" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+  </div>
+
+  <nav aria-label="Hauptnavigation mobil" class="container-x flex-1 overflow-y-auto overscroll-contain py-6">
+    <ul>
+      {
+        nav.map((item, i) => (
+          <li class="mm-item border-b border-white/10" style={`--i:${i}`}>
+            <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} class:list={['group flex items-baseline gap-4 py-4 no-underline', isActive(item.href) ? 'text-bronze-300' : 'text-white']}>
+              <span class="w-6 font-display text-sm font-semibold text-bronze" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="font-display text-[2rem] leading-none font-bold uppercase tracking-wide">{item.label}</span>
+            </a>
+            {item.href === '/leistungen/' && (
+              <ul class="-mt-1 grid grid-cols-2 gap-x-4 gap-y-1 pb-4 pl-10">
+                {services.map((s) => (
+                  <li><a href={`/leistungen/${s.slug}/`} class="block py-1.5 text-[0.95rem] leading-snug text-muted-dark no-underline hover:text-white">{s.short}</a></li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <div class="mm-item container-x shrink-0 border-t border-white/10 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]" style={`--i:${nav.length}`}>
+    <div class="grid grid-cols-2 gap-3">
+      <a href={site.phone.href} class="flex min-h-12 items-center justify-center gap-2 border border-white/25 font-display font-semibold uppercase tracking-wider text-white no-underline">
+        <Icon name="phone" class="size-5 text-bronze" /> Anrufen
+      </a>
+      <a href="/kontakt/" class="flex min-h-12 items-center justify-center gap-2 bg-bronze font-display font-semibold uppercase tracking-wider text-ink no-underline">
+        Anfragen <Icon name="arrow" class="size-5" />
+      </a>
+    </div>
+    <p class="mt-4 text-center text-sm text-muted-dark">{fullAddress} · <a href={`mailto:${site.email}`} class="text-white/80 no-underline">{site.email}</a></p>
+  </div>
+</div>
+
+<script>
+  // --- Scroll-Zustand + Lesefortschritt -------------------------------------------------
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    let ticking = false;
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      header.classList.toggle('is-scrolled', scrollY > 40);
+      header.style.setProperty('--progress', String(max > 0 ? Math.min(scrollY / max, 1) : 0));
+      ticking = false;
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+    onScroll();
+  }
+
+  // --- Dropdown «Leistungen» ------------------------------------------------------------
+  document.querySelectorAll<HTMLElement>('[data-dd]').forEach((dd) => {
+    const btn = dd.querySelector<HTMLButtonElement>('[data-dd-toggle]')!;
+    const set = (open: boolean) => {
+      dd.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    btn.addEventListener('click', () => set(!dd.classList.contains('is-open')));
+    dd.addEventListener('keydown', (e) => { if (e.key === 'Escape') { set(false); btn.focus(); } });
+    dd.addEventListener('focusout', (e) => { if (!dd.contains(e.relatedTarget as Node)) set(false); });
+    document.addEventListener('click', (e) => { if (!dd.contains(e.target as Node)) set(false); });
+  });
+
+  // --- Mobiles Menü ---------------------------------------------------------------------
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+  const closeBtn = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+  if (menu && openBtn && closeBtn) {
+    const focusables = () => [...menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')];
+    const open = () => {
+      menu.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      openBtn.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => requestAnimationFrame(() => menu.classList.add('is-open')));
+      closeBtn.focus();
+    };
+    const close = () => {
+      menu.classList.remove('is-open');
+      openBtn.setAttribute('aria-expanded', 'false');
+      document.documentElement.style.overflow = '';
+      const done = () => { menu.hidden = true; openBtn.focus(); };
+      matchMedia('(prefers-reduced-motion: reduce)').matches ? done() : setTimeout(done, 280);
+    };
+    openBtn.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    menu.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
+      if (e.key === 'Tab') {
+        const f = focusables();
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+    // Link zur aktuellen Seite/Anker: Menü schliessen
+    menu.querySelectorAll('a[href]').forEach((a) => a.addEventListener('click', () => { if (!menu.hidden) close(); }));
+    matchMedia('(width >= 64rem)').addEventListener('change', (e) => { if (e.matches && !menu.hidden) close(); });
+  }
+</script>
+
+<style>
+  /* Scroll-Zustand */
+  .mainbar {
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .site-header.is-scrolled .mainbar {
+    background: rgb(26 26 26 / 0.94);
+    backdrop-filter: saturate(160%) blur(20px);
+    -webkit-backdrop-filter: saturate(160%) blur(20px);
+    box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.8);
+  }
+  .scroll-progress {
+    transform: scaleX(var(--progress, 0));
+  }
+
+  /* Infozeile */
+  .topbar-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .topbar-link:hover {
+    color: #fff;
+  }
+
+  /* Navigation: Linie läuft von links ein */
+  .navlink {
+    position: relative;
+    display: inline-flex;
+    height: 100%;
+    align-items: center;
+    padding-inline: 0.85rem;
+    color: rgb(255 255 255 / 0.82);
+    text-decoration: none;
+    transition: color 0.25s ease;
+  }
+  .navlink::after {
+    content: '';
+    position: absolute;
+    left: 0.85rem;
+    right: 0.85rem;
+    bottom: -1px;
+    height: 2px;
+    background: var(--color-bronze);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .navlink:hover,
+  .navlink.is-active,
+  .dd:hover > .navlink {
+    color: #fff;
+  }
+  .navlink:hover::after,
+  .navlink.is-active::after,
+  .dd:hover > .navlink::after {
+    transform: scaleX(1);
+  }
+
+  /* Dropdown */
+  .dd-panel {
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, 8px);
+    transition:
+      opacity 0.22s ease,
+      transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s linear 0.28s;
+  }
+  .dd:hover .dd-panel,
+  .dd.is-open .dd-panel {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 0s;
+  }
+  .dd-chevron {
+    transition: transform 0.25s ease;
+  }
+  .dd:hover .dd-chevron,
+  .dd.is-open .dd-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* CTA mit schräger Ecke (wie Visitenkarte) */
+  .cta-cut {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+
+  /* Burger → X */
+  .burger-lines {
+    position: relative;
+    display: block;
+    width: 1.5rem;
+    height: 1rem;
+  }
+  .burger-lines span {
+    position: absolute;
+    left: 0;
+    height: 2px;
+    background: currentColor;
+    transition:
+      transform 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 0.2s,
+      width 0.3s;
+  }
+  .burger-lines span:nth-child(1) { top: 0; width: 100%; }
+  .burger-lines span:nth-child(2) { top: 7px; width: 70%; }
+  .burger-lines span:nth-child(3) { top: 14px; width: 100%; }
+  .burger:hover .burger-lines span:nth-child(2) { width: 100%; }
+  .burger.is-open .burger-lines span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .burger.is-open .burger-lines span:nth-child(2) { opacity: 0; }
+  .burger.is-open .burger-lines span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Mobiles Menü */
+  .mmenu {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      opacity 0.25s ease,
+      clip-path 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .mmenu.is-open {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  .mm-item {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.45s ease calc(var(--i) * 55ms + 150ms),
+      transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 55ms + 150ms);
+  }
+  .mmenu.is-open .mm-item {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mmenu,
+    .mm-item {
+      transition: none;
+    }
+  }
+</style>

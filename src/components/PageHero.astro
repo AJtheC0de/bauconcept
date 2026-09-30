@@ -1,0 +1,24 @@
+---
+/** Dunkler Kopfbereich für Unterseiten (H1 + Einleitung + Breadcrumbs). */
+import Breadcrumbs from './Breadcrumbs.astro';
+import Diagonal from './Diagonal.astro';
+interface Props {
+  title: string;
+  kicker?: string;
+  lead?: string;
+  breadcrumbs: { name: string; path: string }[];
+  next?: 'white' | 'stone';
+}
+const { title, kicker, lead, breadcrumbs, next = 'white' } = Astro.props;
+---
+
+<section class="bg-ink pt-10 pb-10 text-white sm:pt-14 sm:pb-14">
+  <div class="container-x">
+    <Breadcrumbs items={breadcrumbs} />
+    {kicker && <p class="kicker text-bronze-300">{kicker}</p>}
+    <h1 class="max-w-4xl">{title}</h1>
+    {lead && <p class="mt-6 max-w-2xl text-lg text-muted-dark sm:text-xl">{lead}</p>}
+    <slot />
+  </div>
+</section>
+<Diagonal from="ink" to={next} />

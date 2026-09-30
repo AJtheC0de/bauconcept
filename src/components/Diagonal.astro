@@ -1,0 +1,25 @@
+---
+/**
+ * Diagonale Kante zwischen zwei Sektionen – wie auf der Visitenkarte, mit Bronze-Linie.
+ * from = Farbe der oberen Sektion, to = Farbe der unteren.
+ */
+type Tone = 'ink' | 'white' | 'stone';
+interface Props {
+  from: Tone;
+  to: Tone;
+  /** Richtung der Steigung */
+  flip?: boolean;
+  line?: boolean;
+}
+const { from, to, flip = false, line = true } = Astro.props;
+const fill = { ink: 'var(--color-ink)', white: '#ffffff', stone: 'var(--color-stone)' };
+const poly = flip ? '0,0 100,100 0,100' : '0,100 100,0 100,100';
+const l = flip ? { x1: 0, y1: 0, x2: 100, y2: 100 } : { x1: 0, y1: 100, x2: 100, y2: 0 };
+---
+
+<div aria-hidden="true" class="relative -my-px h-[6vw] max-h-24 min-h-8 w-full" style={`background:${fill[from]}`}>
+  <svg class="absolute top-0 left-0 h-[calc(100%+2px)] w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <polygon points={poly} fill={fill[to]}></polygon>
+    {line && <line {...l} stroke="var(--color-bronze)" stroke-width="3" vector-effect="non-scaling-stroke" />}
+  </svg>
+</div>

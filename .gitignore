@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.env
+.env.*
+!.env.example
+.DS_Store
+# Originalfotos der Visitenkarten enthalten GPS-Daten – nicht ins Repo
+Visitenkarte*.jpeg
+Logo.png
+lighthouse/

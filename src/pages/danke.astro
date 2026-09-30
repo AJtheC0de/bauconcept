@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../config/site';
+import { ph } from '../lib/text';
+---
+
+<BaseLayout title="Vielen Dank | Bau Concept Schweiz" description="Ihre Nachricht ist bei uns eingegangen." noindex>
+  <section class="section bg-ink text-white">
+    <div class="container-x max-w-3xl">
+      <Icon name="checkCircle" class="size-14 text-bronze" strokeWidth={1.4} />
+      <h1 class="mt-6">Vielen Dank!</h1>
+      <p class="mt-6 text-lg text-muted-dark" data-danke-text set:html={ph(`Ihre Nachricht ist bei uns eingegangen. Wir melden uns ${site.responseTime}.`)} />
+      <p class="mt-4 text-lg text-muted-dark">Falls es dringend ist: <a href={site.phone.href} class="link-dark">{site.phone.display}</a></p>
+      <a href="/" class="btn-outline-light mt-10">Zur Startseite</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  if (new URLSearchParams(location.search).get('typ') === 'bewerbung') {
+    const p = document.querySelector('[data-danke-text]');
+    if (p) p.textContent = 'Deine Bewerbung ist bei uns eingegangen. Wir schauen sie uns an und rufen dich an.';
+  }
+</script>

@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Media from '../../components/Media.astro';
+import Icon from '../../components/Icon.astro';
+import ProcessSteps from '../../components/ProcessSteps.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import { services, processSteps } from '../../data/services';
+import { servicePhotos } from '../../data/photos';
+
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Leistungen', path: '/leistungen/' },
+];
+---
+
+<BaseLayout
+  title="Leistungen im Tiefbau Zug | Bau Concept Schweiz"
+  description="Aushub, Erdarbeiten, Strassenbau, Beläge, Werkleitungen und Kanalisation: die Leistungen der Bau Concept Schweiz GmbH aus Zug im Überblick."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero
+    kicker="Leistungen"
+    title="Tiefbau in Zug – unsere Leistungen"
+    lead="Als Tiefbauunternehmen in Zug übernehmen wir alles, was im und am Boden passiert. Hier finden Sie unsere vier Bereiche im Überblick."
+    breadcrumbs={breadcrumbs}
+  />
+
+  <section class="section pt-8 sm:pt-10 lg:pt-12" aria-label="Leistungsbereiche">
+    <div class="container-x space-y-16 lg:space-y-24">
+      {services.map((s, i) => (
+        <article class="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16" data-reveal>
+          <div class:list={['overflow-hidden', i % 2 === 1 && 'lg:order-2']}>
+            <Media image={servicePhotos[s.slug].src} alt={servicePhotos[s.slug].alt} label={s.photoLabel} sizes="(min-width: 1024px) 50vw, 100vw" />
+          </div>
+          <div>
+            <Icon name={s.icon} class="size-12 text-bronze-700" strokeWidth={1.4} />
+            <h2 class="mt-5 text-3xl sm:text-4xl">{s.title}</h2>
+            <p class="mt-4 text-lg text-muted">{s.teaser}</p>
+            <ul class="mt-6 space-y-2">
+              {s.tasks.filter((t) => !t.includes('PLATZHALTER')).slice(0, 4).map((t) => (
+                <li class="flex gap-3"><Icon name="check" class="mt-1 size-5 shrink-0 text-bronze-700" strokeWidth={2.2} />{t}</li>
+              ))}
+            </ul>
+            <a href={`/leistungen/${s.slug}/`} class="btn-outline-dark mt-8">
+              Mehr zu {s.short} <Icon name="arrow" class="size-5" />
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section bg-stone" aria-labelledby="ablauf">
+    <div class="container-x">
+      <SectionHeader kicker="Ablauf" title="Von der Anfrage bis zur Übergabe" id="ablauf" />
+      <ProcessSteps steps={processSteps} />
+    </div>
+  </section>
+
+  <CtaSection prev="stone" variant="full" />
+</BaseLayout>

@@ -1,0 +1,41 @@
+---
+import { upload } from '../config/site';
+import FormStatus from './FormStatus.astro';
+const id = 'bewerbung';
+---
+
+<form id={id} action="/api/bewerbung/" method="post" enctype="multipart/form-data" class="space-y-5" data-ajax-form data-max-bytes={upload.maxTotalBytes}>
+  <p class="text-sm text-muted">Felder mit * sind Pflichtfelder.</p>
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for={`${id}-name`} class="field-label">Name *</label>
+      <input id={`${id}-name`} name="name" type="text" required autocomplete="name" class="field" />
+    </div>
+    <div>
+      <label for={`${id}-phone`} class="field-label">Telefon *</label>
+      <input id={`${id}-phone`} name="telefon" type="tel" required autocomplete="tel" class="field" />
+    </div>
+  </div>
+  <div>
+    <label for={`${id}-beruf`} class="field-label">Beruf & Erfahrung *</label>
+    <textarea id={`${id}-beruf`} name="erfahrung" required rows="4" class="field" placeholder="z. B. Strassenbauer EFZ, 5 Jahre Erfahrung, Führerausweis C"></textarea>
+  </div>
+  <div>
+    <label for={`${id}-cv`} class="field-label">Lebenslauf <span class="font-normal text-muted">(optional)</span></label>
+    <input id={`${id}-cv`} name="dateien" type="file" accept={upload.accept} aria-describedby={`${id}-cv-hint`} class="block w-full text-sm file:mr-4 file:min-h-11 file:cursor-pointer file:border-0 file:bg-ink file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-ink-700" />
+    <p id={`${id}-cv-hint`} class="mt-1.5 text-sm text-muted">PDF, JPG oder PNG, max. {upload.maxLabel}. Kein Lebenslauf zur Hand? Kein Problem – wir rufen dich an.</p>
+  </div>
+
+  <div class="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+    <label for={`${id}-website`}>Website (nicht ausfüllen)</label>
+    <input id={`${id}-website`} name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name="_t" value="" data-form-time />
+
+  <p class="text-sm text-muted">Deine Angaben verwenden wir nur für deine Bewerbung. Mehr in der <a href="/datenschutz/" class="link">Datenschutzerklärung</a>.</p>
+  <button type="submit" class="btn-primary w-full sm:w-auto">Bewerbung senden</button>
+
+  <FormStatus successTitle="Danke für deine Bewerbung!" successText="Wir schauen sie uns an und melden uns telefonisch bei dir."
+    errorText="Bitte versuch es nochmals oder ruf uns direkt an."
+  />
+</form>

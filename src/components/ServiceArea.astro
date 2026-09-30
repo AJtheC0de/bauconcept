@@ -1,0 +1,223 @@
+---
+/**
+ * Einsatzgebiet: Liste mit Luftlinie ab Zug + schematische Karte (echte Koordinaten, Seen nur grob).
+ * Liste und Karte heben sich gegenseitig hervor (Hover/Fokus).
+ */
+import { site, fullAddress } from '../config/site';
+import { origin, towns, lakes, distanceKm, project, viewBox } from '../data/geo';
+import { ph } from '../lib/text';
+import Icon from './Icon.astro';
+
+const area = site.serviceArea;
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9äöü]+/g, '-');
+
+const list = area.municipalities
+  .filter((m) => m !== origin.name)
+  .map((name) => {
+    const t = towns[name];
+    return { name, slug: slug(name), km: t ? distanceKm(origin, t) : undefined, t };
+  })
+  .sort((a, b) => (a.km ?? 99) - (b.km ?? 99));
+
+const o = project(origin.lat, origin.lon);
+const pts = list
+  .filter((l) => l.t)
+  .map((l, i) => {
+    const p = project(l.t!.lat, l.t!.lon);
+    const off = { r: { dx: 5, dy: 1.6, a: 'start' }, l: { dx: -5, dy: 1.6, a: 'end' }, t: { dx: 0, dy: -5, a: 'middle' }, b: { dx: 0, dy: 8, a: 'middle' } }[l.t!.label];
+    return { ...l, ...p, off, i };
+  });
+const lakePath = (pts: readonly (readonly number[])[]) =>
+  'M' + pts.map(([lat, lon]) => { const p = project(lat, lon); return `${p.x.toFixed(1)} ${p.y.toFixed(1)}`; }).join(' L') + 'Z';
+const ringKm = [5, 10];
+---
+
+<section class="section bg-white" aria-labelledby="einsatzgebiet">
+  <div class="container-x grid grid-cols-1 items-start gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16" data-area>
+    <div>
+      <p class="kicker text-bronze-700">Einsatzgebiet</p>
+      <h2 id="einsatzgebiet">Zuhause in Zug</h2>
+      <p class="mt-5 text-lg text-muted">
+        Unser Standort ist in Zug. Kurze Wege bedeuten schnelle Besichtigungen, kurze Anfahrten für Maschinen und einen Ansprechpartner, der die Region kennt.
+      </p>
+
+      <div class="mt-8 flex items-center gap-4 bg-ink p-4 pr-6 text-white">
+        <span class="flex size-11 shrink-0 items-center justify-center bg-bronze text-ink" aria-hidden="true"><Icon name="pin" class="size-6" /></span>
+        <span>
+          <span class="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-dark">Standort</span>
+          <span class="font-display text-xl font-semibold tracking-wide">{fullAddress}</span>
+        </span>
+      </div>
+
+      <h3 class="mt-10 text-xl">Gemeinden im Kanton Zug</h3>
+      <ul class="mt-4 grid grid-cols-1 border-t border-line xs:grid-cols-2 xs:gap-x-8">
+        {list.map((l) => (
+          <li class="area-row flex items-baseline justify-between gap-3 border-b border-line py-2.5" data-town={l.slug}>
+            <span class="font-medium">{l.name}</span>
+            {l.km !== undefined && <span class="text-sm tabular-nums text-muted">ca. {Math.max(1, Math.round(l.km))} km</span>}
+          </li>
+        ))}
+      </ul>
+      <p class="mt-4 text-sm text-muted">Distanz = Luftlinie ab Zug.</p>
+      <p class="mt-5 text-muted" set:html={`Ausserdem: ${ph(area.more)}`} />
+      <p class="mt-5"><a href="/kontakt/" class="link">Ihr Ort ist nicht dabei? Fragen Sie uns trotzdem</a> <Icon name="arrow" class="inline size-5 text-bronze-700" /></p>
+    </div>
+
+    <!-- Schematische Karte -->
+    <figure class="area-map relative bg-ink p-4 sm:p-6 lg:sticky lg:top-28" data-animate>
+      <svg viewBox={`0 0 ${viewBox.w} ${viewBox.h}`} class="h-auto w-full" role="img" aria-labelledby="area-map-title">
+        <title id="area-map-title">Schematische Karte: Standort Zug und bediente Gemeinden im Kanton Zug</title>
+        <defs>
+          <pattern id="area-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M20 0H0V20" fill="none" stroke="rgb(255 255 255 / 0.04)" stroke-width="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#area-grid)" />
+        <path d={lakePath(lakes.zugersee)} fill="rgb(255 255 255 / 0.06)" stroke="rgb(255 255 255 / 0.12)" stroke-width="0.6" stroke-linejoin="round" />
+        <path d={lakePath(lakes.aegerisee)} fill="rgb(255 255 255 / 0.06)" stroke="rgb(255 255 255 / 0.12)" stroke-width="0.6" stroke-linejoin="round" />
+        <text x={project(47.095, 8.492).x} y={project(47.095, 8.492).y} fill="rgb(255 255 255 / 0.28)" font-size="4" font-style="italic" text-anchor="middle" transform={`rotate(-78 ${project(47.095, 8.492).x} ${project(47.095, 8.492).y})`}>Zugersee</text>
+
+        <g class="area-rings">
+          {ringKm.map((km) => (
+            <>
+              <circle cx={o.x} cy={o.y} r={km * 10} fill="none" stroke="var(--color-bronze)" stroke-opacity="0.35" stroke-width="0.6" stroke-dasharray="2 2" />
+              <text x={o.x + 1.5} y={o.y + km * 10 - 1.8} fill="var(--color-bronze-300)" fill-opacity="0.85" font-size="4" font-family="Barlow, sans-serif">{km} km</text>
+            </>
+          ))}
+        </g>
+
+        <g class="area-lines">
+          {pts.map((p) => (
+            <line x1={o.x} y1={o.y} x2={p.x} y2={p.y} pathLength="1" data-town={p.slug} style={`--i:${p.i}`} />
+          ))}
+        </g>
+
+        <g class="area-dots" font-family="Barlow, sans-serif">
+          {pts.map((p) => (
+            <g class="area-dot" data-town={p.slug} style={`--i:${p.i}`}>
+              <circle cx={p.x} cy={p.y} r="2.2" />
+              <text x={p.x + p.off.dx} y={p.y + p.off.dy} text-anchor={p.off.a} font-size="4.6">{p.name}</text>
+            </g>
+          ))}
+        </g>
+
+        <g class="area-origin">
+          <circle class="area-pulse" cx={o.x} cy={o.y} r="4" fill="var(--color-bronze)" />
+          <circle cx={o.x} cy={o.y} r="3.6" fill="var(--color-bronze)" stroke="var(--color-ink)" stroke-width="1.2" />
+          <text x={o.x - 6} y={o.y + 1.8} text-anchor="end" fill="#fff" font-size="6" font-weight="700" font-family="Barlow Condensed, sans-serif" letter-spacing="0.6">ZUG</text>
+        </g>
+      </svg>
+      <figcaption class="mt-3 flex items-center justify-between gap-4 text-xs text-muted-dark">
+        <span class="flex items-center gap-2"><span class="inline-block size-2.5 rounded-full bg-bronze" aria-hidden="true"></span>Standort Zug</span>
+        <span>Schematische Darstellung</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-area]').forEach((root) => {
+    const set = (town: string | null) =>
+      root.querySelectorAll<Element>('[data-town]').forEach((el) => el.classList.toggle('is-hl', el.getAttribute('data-town') === town));
+    root.querySelectorAll<Element>('.area-row, .area-dot').forEach((el) => {
+      const town = el.getAttribute('data-town');
+      el.addEventListener('mouseenter', () => set(town));
+      el.addEventListener('mouseleave', () => set(null));
+    });
+  });
+</script>
+
+<style>
+  .area-row {
+    cursor: default;
+    transition:
+      color 0.2s,
+      padding 0.25s ease;
+  }
+  .area-row.is-hl {
+    color: var(--color-bronze-700);
+    padding-left: 0.5rem;
+    box-shadow: inset 2px 0 0 var(--color-bronze);
+  }
+
+  .area-lines line {
+    stroke: rgb(255 255 255 / 0.12);
+    stroke-width: 0.5;
+    transition:
+      stroke 0.25s,
+      stroke-width 0.25s;
+  }
+  .area-lines line.is-hl {
+    stroke: var(--color-bronze);
+    stroke-width: 0.9;
+  }
+  .area-dot circle {
+    fill: #fff;
+    transition:
+      fill 0.25s,
+      r 0.25s;
+  }
+  .area-dot text {
+    fill: rgb(255 255 255 / 0.72);
+    transition: fill 0.25s;
+  }
+  .area-dot.is-hl circle {
+    fill: var(--color-bronze);
+    r: 3;
+  }
+  .area-dot.is-hl text {
+    fill: #fff;
+    font-weight: 600;
+  }
+  .area-pulse {
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: area-pulse 2.6s ease-out infinite;
+  }
+  @keyframes area-pulse {
+    from {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(3.2);
+    }
+  }
+
+  /* Aufbau beim Einblenden */
+  :global(.is-armed).area-map .area-rings circle {
+    transform-origin: center;
+    transform-box: fill-box;
+    transform: scale(0.6);
+    opacity: 0;
+    transition:
+      transform 1s cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 1s ease;
+  }
+  :global(.is-armed).area-map .area-lines line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.7s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 70ms + 300ms);
+  }
+  :global(.is-armed).area-map .area-dot {
+    opacity: 0;
+    transition: opacity 0.4s ease calc(var(--i) * 70ms + 750ms);
+  }
+  :global(.is-active).area-map .area-rings circle {
+    transform: none;
+    opacity: 1;
+  }
+  :global(.is-active).area-map .area-lines line {
+    stroke-dashoffset: 0;
+  }
+  :global(.is-active).area-map .area-dot {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .area-pulse {
+      animation: none;
+      opacity: 0;
+    }
+  }
+</style>

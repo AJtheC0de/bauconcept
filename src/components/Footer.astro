@@ -1,0 +1,70 @@
+---
+import { Image } from 'astro:assets';
+import { site, nav } from '../config/site';
+import { services } from '../data/services';
+import logo from '../assets/brand/logo-light.png';
+import Icon from './Icon.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-ink text-white">
+  <div class="h-1 bg-bronze" aria-hidden="true"></div>
+  <div class="container-x grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-4">
+    <div>
+      <Image src={logo} alt={site.name} width={160} height={134} densities={[1, 2]} class="h-auto w-36" />
+      <p class="mt-6 font-display text-2xl font-bold uppercase tracking-wide text-bronze-300">
+        {site.claims.footer.split(' ').map((w, i) => (i === 0 ? <span class="text-white">{w} </span> : `${w} `))}
+      </p>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-xl text-white">Kontakt</h2>
+      <address class="space-y-3 not-italic text-muted-dark">
+        <p class="flex gap-3">
+          <Icon name="pin" class="mt-0.5 size-5 shrink-0 text-bronze" />
+          <span>{site.name}<br />{site.address.street}<br />{site.address.zip} {site.address.city}</span>
+        </p>
+        <p>
+          <a href={site.phone.href} class="flex items-center gap-3 text-white no-underline hover:text-bronze-300">
+            <Icon name="phone" class="size-5 shrink-0 text-bronze" />{site.phone.display}
+          </a>
+        </p>
+        <p>
+          <a href={`mailto:${site.email}`} class="flex items-center gap-3 break-all text-white no-underline hover:text-bronze-300">
+            <Icon name="mail" class="size-5 shrink-0 text-bronze" />{site.email}
+          </a>
+        </p>
+      </address>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-xl text-white">Leistungen</h2>
+      <ul class="space-y-2.5">
+        {services.map((s) => (
+          <li><a href={`/leistungen/${s.slug}/`} class="text-muted-dark no-underline hover:text-white hover:underline">{s.title}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-xl text-white">Navigation</h2>
+      <ul class="space-y-2.5">
+        {nav.map((n) => (
+          <li><a href={n.href} class="text-muted-dark no-underline hover:text-white hover:underline">{n.label}</a></li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-white/10">
+    <div class="container-x flex flex-col gap-3 py-6 pb-24 text-sm text-muted-dark sm:flex-row sm:items-center sm:justify-between md:pb-6">
+      <p>© {year} {site.legal.name}</p>
+      <ul class="flex flex-wrap gap-x-6 gap-y-2">
+        <li><a href="/impressum/" class="hover:text-white">Impressum</a></li>
+        <li><a href="/datenschutz/" class="hover:text-white">Datenschutz</a></li>
+        <li><button type="button" class="underline-offset-4 hover:text-white hover:underline" data-consent-open>Cookie-Einstellungen</button></li>
+      </ul>
+    </div>
+  </div>
+</footer>

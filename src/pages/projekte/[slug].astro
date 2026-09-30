@@ -1,0 +1,87 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Media from '../../components/Media.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import { serviceBySlug } from '../../data/services';
+import { ph, plain } from '../../lib/text';
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection('projekte');
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props as { project: CollectionEntry<'projekte'> };
+const d = project.data;
+const { Content } = await render(project);
+const path = `/projekte/${project.id}/`;
+const titlePlain = plain(d.title).replace(/^\s*/, '');
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Projekte', path: '/projekte/' },
+  { name: titlePlain, path },
+];
+const facts = [
+  { k: 'Ort', v: d.ort },
+  { k: 'Jahr', v: d.jahr },
+  ...(d.auftraggeber ? [{ k: 'Auftraggeber', v: d.auftraggeber }] : []),
+];
+const firstService = d.leistungen[0];
+---
+
+<BaseLayout
+  title={`${titlePlain.slice(0, 40)} | Bau Concept Schweiz`}
+  description={d.description}
+  breadcrumbs={breadcrumbs}
+  noindex={d.platzhalter}
+>
+  <PageHero kicker="Projekt" title={titlePlain} breadcrumbs={breadcrumbs}>
+    <dl class="mt-8 flex flex-wrap gap-x-10 gap-y-4">
+      {facts.map((f) => (
+        <div>
+          <dt class="text-sm font-semibold uppercase tracking-wider text-bronze-300">{f.k}</dt>
+          <dd class="mt-1 text-lg" set:html={ph(f.v)} />
+        </div>
+      ))}
+      <div>
+        <dt class="text-sm font-semibold uppercase tracking-wider text-bronze-300">Leistungen</dt>
+        <dd class="mt-1 flex flex-wrap gap-2">
+          {d.leistungen.map((l) => (
+            <a href={`/leistungen/${l}/`} class="bg-white/10 px-2.5 py-1 text-sm font-semibold uppercase tracking-wider text-white no-underline hover:bg-bronze hover:text-ink">
+              {serviceBySlug(l)?.short}
+            </a>
+          ))}
+        </dd>
+      </div>
+    </dl>
+  </PageHero>
+
+  <section class="section pt-8 sm:pt-10 lg:pt-12">
+    <div class="container-x grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
+      <div class="prose-bc text-lg [&_p]:text-muted">
+        <Content />
+      </div>
+      <div class="lg:sticky lg:top-28 lg:self-start">
+        <Media image={d.cover.image} alt={d.cover.alt} label={d.cover.label} eager sizes="(min-width: 1024px) 40vw, 100vw" />
+      </div>
+    </div>
+  </section>
+
+  {d.galerie.length > 0 && (
+    <section class="section bg-stone" aria-labelledby="galerie">
+      <div class="container-x">
+        <h2 id="galerie" class="mb-10">Bilder</h2>
+        <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {d.galerie.map((g) => (
+            <li><Media image={g.image} alt={g.alt} label={g.label} /></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <CtaSection title="Ähnliches Projekt geplant?" preselect={firstService} variant="full" prev={d.galerie.length ? 'stone' : 'white'} />
+</BaseLayout>
+

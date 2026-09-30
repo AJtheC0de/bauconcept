@@ -1,0 +1,36 @@
+---
+/**
+ * Linien-Icons im Stil der Visitenkarte (24×24, Kontur, currentColor).
+ * Dekorativ (aria-hidden), ausser es wird ein `title` übergeben.
+ */
+import { icons, type IconName } from '../lib/icons';
+
+interface Props {
+  name: IconName;
+  class?: string;
+  title?: string;
+  strokeWidth?: number;
+  /** Linien normiert (pathLength=1), damit sie per CSS «gezeichnet» werden können (.icon-draw) */
+  draw?: boolean;
+}
+
+const { name, class: className = 'size-6', title, strokeWidth = 1.6, draw = false } = Astro.props;
+const markup = draw ? icons[name].replace(/<(path|circle|rect|line|polyline)\b/g, '<$1 pathLength="1"') : icons[name];
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width={strokeWidth}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class={className}
+  aria-hidden={title ? undefined : 'true'}
+  role={title ? 'img' : undefined}
+  focusable="false"
+>
+  {title && <title>{title}</title>}
+  <Fragment set:html={markup} />
+</svg>

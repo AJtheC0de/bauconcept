@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Media from '../components/Media.astro';
+import Icon from '../components/Icon.astro';
+import Diagonal from '../components/Diagonal.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ContactPerson from '../components/ContactPerson.astro';
+import ServiceArea from '../components/ServiceArea.astro';
+import CtaSection from '../components/CtaSection.astro';
+import StatsBand from '../components/StatsBand.astro';
+import { site } from '../config/site';
+import { photos } from '../data/photos';
+import { ph } from '../lib/text';
+
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Unternehmen', path: '/unternehmen/' },
+];
+const values = [
+  { icon: 'pin', title: 'Regional', text: 'Unser Sitz ist in Zug. Wir kennen die Gemeinden, die Wege und die Abläufe vor Ort.' },
+  { icon: 'handshake', title: 'Verlässlich', text: 'Was wir zusagen, halten wir ein – beim Termin, bei der Offerte und bei der Ausführung.' },
+  { icon: 'user', title: 'Persönlich', text: 'Sie haben einen festen Ansprechpartner, der Ihr Projekt kennt und erreichbar ist.' },
+] as const;
+const principles = ['Kompetent.', 'Termingerecht.', 'Qualitätsbewusst.'];
+---
+
+<BaseLayout
+  title="Über uns – Tiefbauunternehmen Zug | Bau Concept"
+  description="Bau Concept Schweiz GmbH: Tiefbauunternehmen mit Sitz in Zug. Regional, verlässlich und persönlich – lernen Sie uns kennen."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero
+    kicker="Unternehmen"
+    title="Ihr Tiefbauunternehmen in Zug"
+    lead={`${site.name} ist ein Tiefbauunternehmen mit Sitz in Zug. ${site.claims.swiss}`}
+    breadcrumbs={breadcrumbs}
+  />
+
+  <section class="section pt-8 sm:pt-10 lg:pt-12" aria-labelledby="wer-wir-sind">
+    <div class="container-x grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      <div>
+        <SectionHeader kicker="Wer wir sind" title="Solide Arbeit im Boden" id="wer-wir-sind" class="mb-6 sm:mb-8" />
+        <div class="space-y-5 text-lg text-muted">
+          <p>
+            Wir übernehmen Aushub und Erdarbeiten, Strassenbau und Beläge, Leitungsbau und Kanalisation – für private Bauherren,
+            Verwaltungen, Unternehmen und öffentliche Auftraggeber.
+          </p>
+          <p set:html={ph('[PLATZHALTER: Geschichte des Unternehmens – z. B. wann und von wem gegründet, was die Motivation war. Nur echte Angaben.]')} />
+          <p set:html={ph('[PLATZHALTER: Team und Maschinenpark – z. B. Ausbildungen im Team, eigene Maschinen. Nur echte Angaben.]')} />
+        </div>
+        <ul class="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-display text-xl font-bold uppercase tracking-wide">
+          {principles.map((p) => <li class="text-bronze-700">{p}</li>)}
+        </ul>
+      </div>
+      <Media image={photos.unternehmen.src} alt={photos.unternehmen.alt} label="Foto: Auf der Baustelle" sizes="(min-width: 1024px) 50vw, 100vw" />
+    </div>
+  </section>
+
+  <StatsBand />
+
+  <Diagonal from="white" to="ink" flip />
+  <section class="section bg-ink text-white" aria-labelledby="slogan">
+    <div class="container-x text-center">
+      <h2 id="slogan" class="sr-only">Unser Leitsatz</h2>
+      <p class="mx-auto max-w-4xl font-script text-4xl leading-snug text-bronze-300 normal-case sm:text-5xl lg:text-6xl">
+        {site.claims.slogan}
+      </p>
+      <div class="mx-auto mt-8 h-0.5 w-24 bg-bronze" aria-hidden="true"></div>
+      <p class="mx-auto mt-8 max-w-2xl text-lg text-muted-dark">
+        Was wir heute im Boden verlegen, verdichten und einbauen, trägt über Jahrzehnte. Deshalb nehmen wir uns Zeit für den Unterbau – auch dort, wo man ihn später nicht mehr sieht.
+      </p>
+    </div>
+  </section>
+  <Diagonal from="ink" to="white" />
+
+  <section class="section" aria-labelledby="werte">
+    <div class="container-x">
+      <SectionHeader kicker="Werte" title={site.claims.values} id="werte" />
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+        {values.map((v) => (
+          <div class="border-t-4 border-bronze pt-6" data-reveal>
+            <Icon name={v.icon} class="size-10 text-bronze-700" strokeWidth={1.4} />
+            <h3 class="mt-4 text-2xl">{v.title}</h3>
+            <p class="mt-2 text-muted">{v.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <ContactPerson title="Ihr Ansprechpartner" />
+  <ServiceArea />
+  <CtaSection variant="short" />
+</BaseLayout>

@@ -1,0 +1,60 @@
+---
+import { site } from '../config/site';
+import type { ServiceSlug } from '../data/services';
+import { ph } from '../lib/text';
+import Icon from './Icon.astro';
+import InquiryForm from './InquiryForm.astro';
+import Diagonal from './Diagonal.astro';
+interface Props {
+  title?: string;
+  lead?: string;
+  preselect?: ServiceSlug;
+  variant?: 'short' | 'full';
+  prev?: 'white' | 'stone';
+}
+const {
+  title = 'Projekt anfragen',
+  lead = 'Beschreiben Sie kurz Ihr Vorhaben. Pläne oder Fotos helfen uns, Ihnen schneller eine realistische Einschätzung zu geben.',
+  preselect,
+  variant = 'short',
+  prev = 'white',
+} = Astro.props;
+const next = [
+  'Wir prüfen Ihre Angaben und melden uns ' + site.responseTime + ' telefonisch oder per E-Mail.',
+  'Bei Bedarf vereinbaren wir einen Termin vor Ort.',
+  'Danach erhalten Sie eine schriftliche Offerte – unverbindlich.',
+];
+---
+
+<Diagonal from={prev} to="ink" flip />
+<section class="section bg-ink text-white" aria-labelledby="anfrage">
+  <div class="container-x grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
+    <div>
+      <p class="kicker text-bronze-300">Anfrage</p>
+      <h2 id="anfrage">{title}</h2>
+      <p class="mt-5 text-lg text-muted-dark">{lead}</p>
+
+      <h3 class="mt-10 text-xl text-white">So geht es weiter</h3>
+      <ol class="mt-4 space-y-4">
+        {next.map((t, i) => (
+          <li class="flex gap-4">
+            <span class="flex size-8 shrink-0 items-center justify-center bg-bronze font-display font-bold text-ink" aria-hidden="true">{i + 1}</span>
+            <span class="text-muted-dark" set:html={ph(t)} />
+          </li>
+        ))}
+      </ol>
+
+      <div class="mt-10 border-t border-white/15 pt-8">
+        <p class="text-muted-dark">Lieber direkt sprechen?</p>
+        <a href={site.phone.href} class="mt-2 inline-flex items-center gap-3 font-display text-3xl font-bold text-white no-underline hover:text-bronze-300">
+          <Icon name="phone" class="size-7 text-bronze" />
+          {site.phone.display}
+        </a>
+      </div>
+    </div>
+
+    <div class="bg-white p-6 text-ink sm:p-10">
+      <InquiryForm preselect={preselect} variant={variant} />
+    </div>
+  </div>
+</section>

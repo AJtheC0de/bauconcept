@@ -1,0 +1,211 @@
+@import '@fontsource/barlow/latin-400.css';
+@import '@fontsource/barlow/latin-500.css';
+@import '@fontsource/barlow/latin-600.css';
+@import '@fontsource/barlow-condensed/latin-600.css';
+@import '@fontsource/barlow-condensed/latin-700.css';
+@import '@fontsource/nothing-you-could-do/latin-400.css';
+@import 'tailwindcss';
+
+/*
+ * Design-Tokens
+ * Bronze #A6824E ist aus dem Logo gemessen.
+ * Kontraste (WCAG): bronze auf ink 4.91 ✓ · ink auf bronze 4.91 ✓ · bronze auf weiss 3.54 (nur Grafik/≥24px)
+ * → Für Text auf Hell immer bronze-700 (5.92 ✓), für kleinen Text auf Dunkel bronze-300 (6.72 ✓).
+ */
+@theme {
+  --color-ink: #1a1a1a;
+  --color-ink-800: #232323;
+  --color-ink-700: #2e2e2e;
+  --color-steel: #8c8c8c;
+  --color-muted: #5c5c5c;
+  --color-muted-dark: #b8b2a8;
+  --color-stone: #f4f2ee;
+  --color-line: #dedad3;
+  --color-bronze: #a6824e;
+  --color-bronze-300: #c39a5e;
+  --color-bronze-700: #7c5f35;
+  --color-ph: #d9d6d0;
+  --color-ph-ink: #4a4a4a;
+
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-sans: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-script: 'Nothing You Could Do', cursive;
+
+  --breakpoint-xs: 26rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 7rem;
+  }
+  body {
+    @apply bg-white font-sans text-[1.0625rem] leading-relaxed text-ink antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  .display {
+    @apply font-display font-bold uppercase leading-[1.05] tracking-[0.01em];
+    overflow-wrap: break-word;
+    hyphens: manual;
+    text-wrap: balance;
+  }
+  h1 {
+    @apply text-[2.5rem] sm:text-5xl lg:text-[4rem];
+  }
+  h2 {
+    @apply text-[2rem] sm:text-[2.5rem] lg:text-5xl;
+  }
+  h3 {
+    @apply text-2xl;
+  }
+  a {
+    @apply underline-offset-4;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-bronze);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  .on-light :focus-visible,
+  .bg-white :focus-visible {
+    outline-color: var(--color-bronze-700);
+  }
+  ::selection {
+    background: var(--color-bronze);
+    color: var(--color-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 px-6 py-3 font-display text-lg font-semibold uppercase tracking-wider no-underline transition-colors;
+}
+@utility link {
+  @apply font-semibold text-bronze-700 underline decoration-2 hover:text-ink;
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .section {
+    @apply py-16 sm:py-20 lg:py-28;
+  }
+  /* Kicker: kurzer Bronze-Strich über H2 */
+  .kicker {
+    @apply mb-4 flex items-center gap-3 font-display text-sm font-semibold uppercase tracking-[0.18em];
+  }
+  .kicker::before {
+    content: '';
+    @apply block h-0.5 w-10 bg-bronze;
+  }
+  .btn-primary {
+    @apply btn bg-bronze text-ink hover:bg-bronze-300;
+  }
+  .btn-outline-light {
+    @apply btn border-2 border-white/70 text-white hover:border-bronze hover:text-bronze-300;
+  }
+  .btn-outline-dark {
+    @apply btn border-2 border-ink text-ink hover:bg-ink hover:text-white;
+  }
+  .link-dark {
+    @apply font-semibold text-bronze-300 underline decoration-2 hover:text-white;
+  }
+  /* Textplatzhalter sichtbar markieren */
+  .ph-text {
+    @apply rounded-sm bg-yellow-200 px-1 text-ink [box-decoration-break:clone];
+  }
+  .prose-bc h2 {
+    @apply mt-12 mb-4 text-3xl first:mt-0;
+  }
+  .prose-bc h3 {
+    @apply mt-8 mb-3;
+  }
+  .prose-bc p,
+  .prose-bc ul,
+  .prose-bc ol {
+    @apply mb-5 max-w-[68ch];
+  }
+  .prose-bc ul {
+    @apply list-disc pl-6;
+  }
+  .prose-bc a {
+    @apply link;
+  }
+  /* Formular */
+  .field-label {
+    @apply mb-1.5 block text-[0.95rem] font-semibold;
+  }
+  .field {
+    @apply block min-h-12 w-full rounded-none border-2 border-line bg-white px-3.5 py-2.5 text-base text-ink placeholder:text-muted focus:border-ink focus:outline-none focus-visible:outline-2 focus-visible:outline-bronze-700;
+  }
+  .field:user-invalid {
+    @apply border-red-700;
+  }
+}
+
+/* Dezentes Einblenden – nur mit JS und ohne reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+  }
+  .js [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Weicher Seitenwechsel (native Cross-Document View Transitions, kein JS).
+ * Chrome/Edge/Safari 18.2+; andere Browser wechseln wie bisher ohne Animation.
+ * Header und mobile Leiste bleiben stehen, nur der Inhalt blendet über.
+ */
+@view-transition {
+  navigation: auto;
+}
+.vt-header {
+  view-transition-name: site-header;
+}
+.vt-mobilebar {
+  view-transition-name: mobile-bar;
+}
+::view-transition-old(root) {
+  animation: 180ms ease-out both vt-fade-out;
+}
+::view-transition-new(root) {
+  animation: 280ms ease-out 60ms both vt-fade-in;
+}
+::view-transition-group(site-header),
+::view-transition-group(mobile-bar) {
+  animation: none;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

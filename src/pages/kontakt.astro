@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+import GoogleMap from '../components/GoogleMap.astro';
+import { site } from '../config/site';
+import { ph } from '../lib/text';
+
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Kontakt', path: '/kontakt/' },
+];
+---
+
+<BaseLayout
+  title="Kontakt & Projektanfrage | Bau Concept Schweiz Zug"
+  description="Projekt anfragen bei Bau Concept Schweiz GmbH, Ibelweg 18A, 6300 Zug. Telefon 078 605 59 82 oder Anfrageformular mit Upload für Pläne und Fotos."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero
+    kicker="Kontakt"
+    title="Projekt anfragen"
+    lead="Erzählen Sie uns, was Sie vorhaben. Sie erhalten eine persönliche Rückmeldung – keine automatisierte Standardantwort."
+    breadcrumbs={breadcrumbs}
+  />
+
+  <section class="section pt-8 sm:pt-10 lg:pt-12">
+    <div class="container-x grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
+      <div>
+        <h2 class="mb-8 text-3xl sm:text-4xl">Anfrageformular</h2>
+        <InquiryForm variant="full" />
+      </div>
+
+      <aside class="space-y-8" aria-labelledby="direkt">
+        <div class="bg-ink p-7 text-white sm:p-8">
+          <h2 id="direkt" class="text-2xl text-white">Direkter Kontakt</h2>
+          <address class="mt-6 space-y-5 not-italic">
+            <a href={site.phone.href} class="flex items-center gap-4 font-display text-2xl font-bold text-white no-underline hover:text-bronze-300">
+              <Icon name="phone" class="size-6 text-bronze" />{site.phone.display}
+            </a>
+            <a href={`mailto:${site.email}`} class="flex items-center gap-4 break-all text-white no-underline hover:text-bronze-300">
+              <Icon name="mail" class="size-6 shrink-0 text-bronze" />{site.email}
+            </a>
+            <p class="flex gap-4 text-muted-dark">
+              <Icon name="pin" class="size-6 shrink-0 text-bronze" />
+              <span>{site.name}<br />{site.address.street}<br />{site.address.zip} {site.address.city}</span>
+            </p>
+          </address>
+        </div>
+
+        <div class="border-l-4 border-bronze bg-stone p-7 sm:p-8">
+          <h2 class="text-2xl">Was nach dem Absenden passiert</h2>
+          <ol class="mt-5 space-y-4">
+            <li class="flex gap-3"><span class="font-display text-xl font-bold text-bronze-700">1</span><span set:html={ph(`Wir melden uns ${site.responseTime} bei Ihnen.`)} /></li>
+            <li class="flex gap-3"><span class="font-display text-xl font-bold text-bronze-700">2</span><span>Wir klären offene Fragen und vereinbaren bei Bedarf eine Besichtigung.</span></li>
+            <li class="flex gap-3"><span class="font-display text-xl font-bold text-bronze-700">3</span><span>Sie erhalten eine schriftliche, unverbindliche Offerte.</span></li>
+          </ol>
+        </div>
+
+        <div class="text-muted">
+          <h2 class="font-display text-xl font-bold uppercase text-ink">Erreichbarkeit</h2>
+          <p class="mt-2" set:html={ph('[PLATZHALTER: Bürozeiten, z. B. Mo–Fr 07.00–17.00 Uhr]')} />
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section bg-stone pt-12 sm:pt-16" aria-labelledby="anfahrt">
+    <div class="container-x">
+      <h2 id="anfahrt" class="mb-8 text-3xl sm:text-4xl">Anfahrt</h2>
+      <GoogleMap />
+    </div>
+  </section>
+</BaseLayout>
+

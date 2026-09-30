@@ -1,0 +1,99 @@
+---
+import { site } from '../config/site';
+import { ph } from '../lib/text';
+import Icon from './Icon.astro';
+import LogoMarquee from './LogoMarquee.astro';
+
+const trust = [
+  { icon: 'pin', title: 'Sitz in Zug', text: `${site.address.street}, ${site.address.zip} ${site.address.city} – kurze Wege im ganzen Kanton.` },
+  { icon: 'user', title: 'Ein Ansprechpartner', text: 'Von der Anfrage bis zur Übergabe sprechen Sie mit derselben Person.' },
+  { icon: 'layers', title: 'Alles aus einer Hand', text: 'Aushub, Leitungen, Kanalisation und Belag – ein Auftrag, ein Unternehmen, keine Schnittstellen.' },
+] as const;
+const values = site.claims.values.split(' ');
+---
+
+<section aria-label="Warum Bau Concept" class="trust bg-ink text-white" data-animate>
+  <div class="trust-line h-1 bg-bronze" aria-hidden="true"></div>
+
+  <div class="container-x grid grid-cols-1 gap-10 py-14 md:grid-cols-3 md:gap-8">
+    {
+      trust.map((t, i) => (
+        <div class="trust-item flex gap-5" style={`--i:${i}`}>
+          <span class="trust-icon flex size-14 shrink-0 items-center justify-center border border-white/15">
+            <Icon name={t.icon} class="icon-draw size-8 text-bronze" strokeWidth={1.4} draw />
+          </span>
+          <div>
+            <p class="font-display text-xl font-bold uppercase tracking-wide" set:html={ph(t.title)} />
+            <p class="mt-1 text-muted-dark" set:html={ph(t.text)} />
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="border-t border-white/10">
+    <LogoMarquee />
+  </div>
+
+  <p class="border-t border-white/10 py-6 text-center font-display text-xl font-bold uppercase tracking-[0.2em] text-bronze-300 sm:text-2xl">
+    <span class="sr-only">{site.claims.values}</span>
+    <span aria-hidden="true">
+      {values.map((w, i) => <span class="trust-word inline-block px-[0.3em]" style={`--i:${i}`}>{w}</span>)}
+    </span>
+  </p>
+</section>
+
+<style>
+  .trust-icon {
+    transition: border-color 0.6s ease calc(var(--i) * 160ms + 700ms);
+  }
+
+  :global(.is-armed).trust .trust-line {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1.1s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  :global(.is-armed).trust .trust-item {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.6s ease calc(var(--i) * 160ms + 250ms),
+      transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 160ms + 250ms);
+  }
+  :global(.is-armed).trust .trust-icon {
+    border-color: transparent;
+  }
+  :global(.is-armed).trust .icon-draw :global(*) {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 160ms + 400ms);
+  }
+  :global(.is-armed).trust .trust-word {
+    opacity: 0;
+    transform: translateY(0.4em);
+    filter: blur(4px);
+    transition:
+      opacity 0.7s ease calc(var(--i) * 220ms + 900ms),
+      transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 220ms + 900ms),
+      filter 0.7s ease calc(var(--i) * 220ms + 900ms);
+  }
+
+  :global(.is-active).trust .trust-line {
+    transform: scaleX(1);
+  }
+  :global(.is-active).trust .trust-item {
+    opacity: 1;
+    transform: none;
+  }
+  :global(.is-active).trust .trust-icon {
+    border-color: rgb(255 255 255 / 0.15);
+  }
+  :global(.is-active).trust .icon-draw :global(*) {
+    stroke-dashoffset: 0;
+  }
+  :global(.is-active).trust .trust-word {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+</style>

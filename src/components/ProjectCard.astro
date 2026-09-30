@@ -1,0 +1,44 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { serviceBySlug } from '../data/services';
+import { ph } from '../lib/text';
+import Media from './Media.astro';
+interface Props {
+  project: CollectionEntry<'projekte'>;
+  headingLevel?: 'h2' | 'h3';
+}
+const { project, headingLevel = 'h3' } = Astro.props;
+const d = project.data;
+const H = headingLevel;
+const rows = [
+  { k: 'Aufgabe', v: d.aufgabe },
+  { k: 'Unsere Leistung', v: d.eigeneLeistung },
+  { k: 'Ergebnis', v: d.ergebnis },
+];
+---
+
+<article class="group relative flex flex-col bg-white ring-1 ring-line transition-shadow hover:shadow-xl" data-reveal data-leistungen={d.leistungen.join(' ')}>
+  <!-- Mobile kompakt: flacheres Bild, weniger Abstand, Texte max. 2 Zeilen; ab sm wie gehabt -->
+  <div class="aspect-[16/10] overflow-hidden sm:aspect-[4/3]">
+    <Media image={d.cover.image} alt={d.cover.alt} label={d.cover.label} aspect="aspect-[16/10] sm:aspect-[4/3]" />
+  </div>
+  <div class="flex flex-1 flex-col p-5 sm:p-7">
+    <p class="text-xs font-semibold uppercase tracking-wider text-bronze-700 sm:text-sm" set:html={`${ph(d.ort)} · ${ph(d.jahr)}`} />
+    <H class="mt-1.5 text-xl sm:mt-2 sm:text-2xl">
+      <a href={`/projekte/${project.id}/`} class="no-underline after:absolute after:inset-0 hover:text-bronze-700" set:html={ph(d.title)} />
+    </H>
+    <dl class="mt-3 space-y-2 text-sm sm:mt-4 sm:space-y-2.5 sm:text-[0.95rem]">
+      {rows.map((r) => (
+        <div>
+          <dt class="text-[0.7rem] font-semibold uppercase tracking-[0.12em] sm:text-[0.95rem] sm:normal-case sm:tracking-normal">{r.k}</dt>
+          <dd class="line-clamp-2 text-muted sm:line-clamp-none" set:html={ph(r.v)} />
+        </div>
+      ))}
+    </dl>
+    <ul class="mt-4 flex flex-wrap gap-1.5 sm:mt-5 sm:gap-2" aria-label="Leistungen">
+      {d.leistungen.map((l) => (
+        <li class="bg-stone px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider sm:px-2.5 sm:py-1 sm:text-xs">{serviceBySlug(l)?.short}</li>
+      ))}
+    </ul>
+  </div>
+</article>

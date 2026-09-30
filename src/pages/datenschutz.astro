@@ -1,0 +1,137 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { site } from '../config/site';
+import { consentGroups } from '../data/consent';
+import { ph } from '../lib/text';
+
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Datenschutz', path: '/datenschutz/' },
+];
+const stand = 'September 2026';
+const L = site.legal;
+---
+
+<BaseLayout
+  title="Datenschutzerklärung | Bau Concept Schweiz GmbH"
+  description="Datenschutzerklärung nach revDSG: welche Daten BauConcept-Schweiz beim Besuch der Website, bei Anfragen und bei Google Maps bearbeitet."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero title="Daten­schutz­erklärung" lead="Nach dem Schweizer Datenschutzgesetz (revDSG). Kurz gesagt: so wenig Daten wie möglich, keine Werbung, kein Tracking ohne Ihre Zustimmung." breadcrumbs={breadcrumbs} />
+  <section class="section pt-8 sm:pt-10 lg:pt-12">
+    <div class="container-x prose-bc">
+      <p class="ph-text inline-block">Hinweis für den Kunden: Vorlage – vor Veröffentlichung rechtlich prüfen lassen und diesen Hinweis entfernen.</p>
+
+      <h2>1. Verantwortliche Stelle</h2>
+      <p>
+        {L.name}<br />
+        {site.address.street}, {site.address.zip} {site.address.city}<br />
+        UID: {L.uid}<br />
+        Vertreten durch: {L.managingDirector}, Geschäftsführer<br />
+        E-Mail: <a href={`mailto:${site.email}`}>{site.email}</a><br />
+        Telefon: <a href={site.phone.href}>{site.phone.display}</a>
+      </p>
+      <p>Für Fragen zum Datenschutz erreichen Sie uns unter den obigen Kontaktangaben.</p>
+
+      <h2>2. Grundsatz</h2>
+      <p>
+        Wir bearbeiten Personendaten nur, soweit dies für den Betrieb dieser Website, die Beantwortung Ihrer Anfragen oder die Bearbeitung
+        von Bewerbungen nötig ist oder Sie eingewilligt haben. Wir verkaufen keine Daten und geben sie nicht zu Werbezwecken weiter.
+      </p>
+
+      <h2>3. Hosting und Server-Logfiles</h2>
+      <p>
+        Die Website wird bei Vercel Inc. (USA) gehostet. Beim Aufruf werden technisch notwendige Daten wie IP-Adresse, Datum und Uhrzeit,
+        aufgerufene Seite und Browsertyp kurzzeitig in Server-Logfiles gespeichert. Diese Daten dienen ausschliesslich dem sicheren und
+        stabilen Betrieb und werden nicht mit anderen Daten zusammengeführt. Die Formularverarbeitung läuft auf Servern in der EU (Frankfurt).
+      </p>
+      <p>Schriften und Bilder werden von unserem eigenen Server geladen – es werden keine Daten an Google Fonts oder ähnliche Dienste übermittelt.</p>
+
+      <h2 id="cookies">4. Cookies, lokale Speicherung und Einwilligung</h2>
+      <p>
+        Diese Website setzt <strong>selbst keine Cookies</strong>. Dienste von Drittanbietern, die Cookies setzen oder Daten übertragen können,
+        laden wir erst, nachdem Sie im Einwilligungs-Fenster zugestimmt haben. Ihre Auswahl speichern wir lokal in Ihrem Browser (Local Storage)
+        – nicht als Cookie und nicht auf unserem Server.
+      </p>
+      <p>
+        Sie können Ihre Einwilligung jederzeit ändern oder widerrufen:
+        <button type="button" class="link" data-consent-open>Cookie-Einstellungen öffnen</button>. Der Widerruf gilt für die Zukunft;
+        die Seite wird dabei neu geladen, damit bereits geladene Inhalte entfernt werden.
+      </p>
+
+      <div class="not-prose mb-8 overflow-x-auto">
+        <table class="w-full min-w-[40rem] border-collapse text-left text-[0.95rem]">
+          <caption class="sr-only">Übersicht der Kategorien und Dienste</caption>
+          <thead>
+            <tr class="border-b-2 border-ink">
+              <th scope="col" class="py-3 pr-4 font-display text-lg uppercase">Kategorie</th>
+              <th scope="col" class="py-3 pr-4 font-display text-lg uppercase">Dienst / Anbieter</th>
+              <th scope="col" class="py-3 pr-4 font-display text-lg uppercase">Zweck</th>
+              <th scope="col" class="py-3 font-display text-lg uppercase">Speicherung / Übermittlung</th>
+            </tr>
+          </thead>
+          <tbody>
+            {consentGroups.flatMap((g) =>
+              g.services.map((s) => (
+                <tr class="border-b border-line align-top">
+                  <td class="py-3 pr-4 font-semibold">{g.title}{g.required && <span class="block text-xs font-normal text-muted">immer aktiv</span>}</td>
+                  <td class="py-3 pr-4">{s.name}<span class="block text-sm text-muted">{s.provider}</span></td>
+                  <td class="py-3 pr-4 text-muted">{s.purpose}</td>
+                  <td class="py-3 text-muted" set:html={ph(`${s.storage} ${s.transfer}`)} />
+                </tr>
+              )),
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="google-maps">5. Google Maps</h2>
+      <p>
+        Auf der Kontaktseite können Sie eine Karte von Google Maps anzeigen lassen (Anbieter: Google Ireland Limited, Gordon House, Barrow
+        Street, Dublin 4, Irland; Muttergesellschaft Google LLC, USA). Die Karte wird <strong>nur nach Ihrer Einwilligung</strong> geladen
+        (Kategorie «Externe Medien» oder Klick auf «Karte laden»). Erst dann stellt Ihr Browser eine Verbindung zu Google her; dabei werden
+        u. a. Ihre IP-Adresse und die aufgerufene Seite an Google übermittelt, und Google kann Cookies setzen. Wir haben keinen Einfluss auf
+        diese Datenbearbeitung. Details: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Datenschutzerklärung von Google</a>.
+      </p>
+      <p>Ohne Einwilligung sehen Sie eine vereinfachte Kartengrafik, die keine Daten an Google überträgt. Der Link «Route planen» öffnet Google Maps in einem neuen Fenster.</p>
+
+      <h2>6. Kontakt- und Anfrageformular</h2>
+      <p>
+        Wenn Sie uns über das Formular kontaktieren, bearbeiten wir die von Ihnen angegebenen Daten (Name, E-Mail, Telefon, Projektort,
+        Beschreibung, allenfalls hochgeladene Pläne oder Fotos), um Ihre Anfrage zu beantworten und eine Offerte zu erstellen. Die Angaben
+        werden per E-Mail an uns übermittelt. Für den Versand nutzen wir den Dienst Resend (Resend, Inc., USA).
+      </p>
+      <p>
+        Wir bewahren Anfragen so lange auf, wie es für die Bearbeitung und allfällige Folgeaufträge nötig ist, bzw. solange gesetzliche
+        Aufbewahrungspflichten bestehen.
+      </p>
+
+      <h2>7. Bewerbungen</h2>
+      <p>
+        Daten aus der Kurzbewerbung (Name, Telefon, Angaben zu Beruf und Erfahrung, allenfalls Lebenslauf) verwenden wir ausschliesslich
+        für das Bewerbungsverfahren. Kommt keine Anstellung zustande, löschen wir die Unterlagen <span set:html={ph('[PLATZHALTER: z. B. spätestens 6 Monate]')} /> nach
+        Abschluss des Verfahrens, sofern Sie nicht in eine längere Aufbewahrung eingewilligt haben.
+      </p>
+
+      <h2>8. Bekanntgabe ins Ausland</h2>
+      <p>
+        Vercel, Resend und Google haben ihren Sitz bzw. Konzernsitz in den USA. Eine Bekanntgabe von Personendaten in die USA erfolgt nur an
+        Anbieter, die unter dem Swiss-U.S. Data Privacy Framework zertifiziert sind, oder auf Grundlage der vom EDÖB anerkannten
+        Standardvertragsklauseln. <span set:html={ph('[PLATZHALTER: Zertifizierungsstatus der Anbieter prüfen]')} />
+      </p>
+
+      <h2>9. Ihre Rechte</h2>
+      <p>
+        Sie haben das Recht auf Auskunft über Ihre bei uns gespeicherten Personendaten, auf Berichtigung unrichtiger Daten, auf Löschung,
+        soweit keine Aufbewahrungspflicht besteht, sowie auf Herausgabe Ihrer Daten in einem gängigen Format. Erteilte Einwilligungen können
+        Sie jederzeit widerrufen. Wenden Sie sich dazu an die oben genannte Adresse. Sie haben zudem das Recht, sich beim Eidgenössischen
+        Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB) zu beschweren.
+      </p>
+
+      <h2>10. Änderungen</h2>
+      <p>Wir können diese Datenschutzerklärung jederzeit anpassen. Es gilt die jeweils auf dieser Website veröffentlichte Fassung.</p>
+      <p>Stand: {stand}</p>
+    </div>
+  </section>
+</BaseLayout>

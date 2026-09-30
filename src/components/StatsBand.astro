@@ -1,0 +1,96 @@
+---
+/**
+ * Kennzahlen mit Hochzähl-Animation. Die Endwerte stehen im HTML (SEO, ohne JS);
+ * das Script setzt sie erst beim Scharfschalten auf den Startwert und zählt beim Sichtbarwerden hoch.
+ */
+import { site } from '../config/site';
+
+interface Props {
+  bg?: 'white' | 'stone';
+}
+const { bg = 'white' } = Astro.props;
+const { foundingYear, employees, projects } = site.stats;
+
+const stats = [
+  { prefix: 'Seit', value: foundingYear, from: foundingYear - 20, label: 'für unsere Kunden im Einsatz' },
+  { value: employees, from: 0, label: 'Mitarbeitende' },
+  { value: projects, from: 0, suffix: '+', label: 'realisierte Projekte' },
+];
+---
+
+<section class:list={['stats pb-16 sm:pb-20 lg:pb-28', bg === 'stone' ? 'bg-stone' : 'bg-white']} aria-label="Bau Concept in Zahlen" data-animate>
+  <div class="container-x">
+    <dl class="grid grid-cols-1 border-y border-line sm:grid-cols-3">
+      {
+        stats.map((s, i) => (
+          <div class:list={['stat relative px-2 py-8 text-center sm:py-14', i > 0 && 'border-t border-line sm:border-t-0 sm:border-l']} style={`--i:${i}`}>
+            <dt class="stat-label order-2 mt-3 text-sm font-semibold uppercase tracking-[0.2em] text-muted">{s.label}</dt>
+            <dd class="order-1 font-display font-bold uppercase leading-none text-ink">
+              {s.prefix && <span class="mr-2 text-xl tracking-[0.15em] text-bronze-700 sm:text-2xl">{s.prefix}</span>}
+              <span class="text-6xl tabular-nums sm:text-7xl lg:text-8xl" data-count={s.value} data-from={s.from}>{s.value}</span>
+              {s.suffix && <span class="text-5xl text-bronze sm:text-6xl lg:text-7xl">{s.suffix}</span>}
+            </dd>
+            <span class="stat-line order-0 mb-5 block h-0.5 w-12 bg-bronze" aria-hidden="true" />
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<script>
+  // Zählt beim Sichtbarwerden hoch (Klasse is-active kommt vom zentralen Script in BaseLayout)
+  const ease = (t: number) => 1 - Math.pow(1 - t, 4);
+  document.querySelectorAll<HTMLElement>('.stats[data-animate]').forEach((section) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const counters = [...section.querySelectorAll<HTMLElement>('[data-count]')];
+    counters.forEach((el) => (el.textContent = el.dataset.from ?? '0'));
+
+    const run = () =>
+      counters.forEach((el, i) => {
+        const to = Number(el.dataset.count);
+        const from = Number(el.dataset.from ?? 0);
+        const duration = 1800;
+        const start = performance.now() + i * 150;
+        const tick = (now: number) => {
+          const t = Math.min(Math.max((now - start) / duration, 0), 1);
+          el.textContent = String(Math.round(from + (to - from) * ease(t)));
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+
+    new MutationObserver((_, mo) => {
+      if (section.classList.contains('is-active')) {
+        mo.disconnect();
+        run();
+      }
+    }).observe(section, { attributes: true, attributeFilter: ['class'] });
+  });
+</script>
+
+<style>
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  :global(.is-armed).stats .stat-line {
+    transform: scaleX(0);
+    transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 150ms + 900ms);
+  }
+  :global(.is-armed).stats .stat-label {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.6s ease calc(var(--i) * 150ms + 300ms),
+      transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 150ms + 300ms);
+  }
+  :global(.is-active).stats .stat-line {
+    transform: scaleX(1);
+  }
+  :global(.is-active).stats .stat-label {
+    opacity: 1;
+    transform: none;
+  }
+</style>

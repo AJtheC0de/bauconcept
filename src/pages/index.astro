@@ -1,0 +1,137 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Media from '../components/Media.astro';
+import Icon from '../components/Icon.astro';
+import Diagonal from '../components/Diagonal.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import Rail from '../components/Rail.astro';
+import { railItemClass } from '../lib/rail';
+import ProjectRail from '../components/ProjectRail.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import ContactPerson from '../components/ContactPerson.astro';
+import ServiceArea from '../components/ServiceArea.astro';
+import JobsTeaser from '../components/JobsTeaser.astro';
+import CtaSection from '../components/CtaSection.astro';
+import TrustBand from '../components/TrustBand.astro';
+import { photos } from '../data/photos';
+import StatsBand from '../components/StatsBand.astro';
+import { services, processSteps } from '../data/services';
+
+const projects = (await getCollection('projekte'))
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || b.data.order - a.data.order)
+  .slice(0, 3);
+
+---
+
+<BaseLayout
+  title="Tiefbau & Strassenbau Zug | Bau Concept Schweiz"
+  description="Bau Concept Schweiz GmbH in Zug: Tiefbau, Strassenbau, Aushub, Werkleitungen und Kanalisation. Kontaktieren Sie uns für Ihr Bauvorhaben."
+>
+  <!-- 2 Hero -->
+  <section class="relative isolate overflow-hidden bg-ink text-white">
+    <div class="absolute inset-0 -z-10 lg:left-[42%]">
+      <Media image={photos.hero.src} alt={photos.hero.alt} label="Foto: Bagger im Einsatz" aspect="h-full object-[65%_center]" eager sizes="(min-width: 1024px) 58vw, 100vw" />
+      <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/35 lg:bg-gradient-to-r lg:from-ink lg:via-ink/35 lg:to-ink/5" aria-hidden="true"></div>
+    </div>
+    <div class="container-x py-20 sm:py-28 lg:py-36">
+      <div class="max-w-2xl">
+        <p class="kicker text-bronze-300">Tiefbau · Strassenbau · Zug</p>
+        <h1>Ihr Partner für Tiefbau &amp; Strassenbau in&nbsp;Zug</h1>
+        <p class="mt-6 max-w-xl text-lg text-white/85 sm:text-xl">
+          Bau Concept Schweiz GmbH mit Sitz in Zug: Ihr Ansprechpartner für Aushub, Erdarbeiten, Strassenbau, Werkleitungen und Kanalisation.
+        </p>
+        <div class="mt-10 flex flex-col gap-4 xs:flex-row">
+          <a href="/kontakt/" class="btn-primary">Projekt anfragen <Icon name="arrow" class="size-5" /></a>
+          <a href="/projekte/" class="btn-outline-light">Projekte ansehen</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 Vertrauensband, Partner, Werte -->
+  <TrustBand />
+  <Diagonal from="ink" to="stone" />
+
+  <!-- 4 Leistungen -->
+  <section class="section bg-stone" aria-labelledby="leistungen">
+    <div class="container-x">
+      <div class="mb-12 grid grid-cols-1 items-end gap-6 sm:mb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-16">
+        <div>
+          <p class="kicker text-bronze-700">Leistungen</p>
+          <h2 id="leistungen">Tiefbau aus einer Hand</h2>
+        </div>
+        <div>
+          <p class="text-lg text-muted">Vier Bereiche, ein Team: Wir übernehmen die Arbeiten im und am Boden – vom ersten Aushub bis zur fertigen Oberfläche.</p>
+          <a href="/leistungen/" class="link mt-4 inline-flex items-center gap-2">Alle Leistungen im Überblick <Icon name="arrow" class="size-5" /></a>
+        </div>
+      </div>
+      <div data-animate>
+        <Rail
+          count={services.length}
+          label="Leistungen"
+          itemName="Leistung"
+          breakpoint="sm"
+          autoplay={5000}
+          gap="gap-3"
+          gridClass="sm:grid-cols-2 sm:gap-0 sm:border-t sm:border-l sm:border-line lg:grid-cols-4"
+        >
+          {services.map((s, i) => (
+            <li class={railItemClass.sm} data-rail-item>
+              <ServiceCard service={s} index={i} />
+            </li>
+          ))}
+        </Rail>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Projekte -->
+  <section class="section bg-white" aria-labelledby="projekte">
+    <div class="container-x">
+      <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end md:gap-6">
+        <div class="max-w-3xl">
+          <p class="kicker text-bronze-700">Referenzen</p>
+          <h2 id="projekte">Ausgewählte Projekte</h2>
+        </div>
+        <a href="/projekte/" class="link inline-flex shrink-0 items-center gap-2">Alle Projekte <Icon name="arrow" class="size-5" /></a>
+      </div>
+      <div class="mt-8 sm:mt-14">
+        <ProjectRail projects={projects} label="Ausgewählte Projekte" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 5b Kennzahlen -->
+  <StatsBand />
+
+  <!-- 6 Ablauf -->
+  <Diagonal from="white" to="ink" flip />
+  <section class="section bg-ink text-white" aria-labelledby="ablauf">
+    <div class="container-x">
+      <SectionHeader
+        kicker="Ablauf"
+        title="So arbeiten wir mit Ihnen"
+        id="ablauf"
+        dark
+        lead="Klare Schritte, klare Absprachen. Sie wissen jederzeit, was als Nächstes passiert."
+      />
+      <ProcessSteps steps={processSteps} dark />
+    </div>
+  </section>
+  <Diagonal from="ink" to="stone" />
+
+  <!-- 7 Ansprechperson -->
+  <ContactPerson />
+
+  <!-- 8 Einsatzgebiet -->
+  <Diagonal from="stone" to="white" line={false} />
+  <ServiceArea />
+
+  <!-- 9 Jobs -->
+  <JobsTeaser />
+
+  <!-- 10 Abschluss-CTA -->
+  <CtaSection prev="stone" variant="short" />
+</BaseLayout>

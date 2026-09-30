@@ -1,0 +1,124 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Media from '../../components/Media.astro';
+import Icon from '../../components/Icon.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import ProcessSteps from '../../components/ProcessSteps.astro';
+import ProjectRail from '../../components/ProjectRail.astro';
+import ContactPerson from '../../components/ContactPerson.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import { services, type Service } from '../../data/services';
+import { servicePhotos } from '../../data/photos';
+import { serviceSchema } from '../../lib/schema';
+import { ph } from '../../lib/text';
+
+export const getStaticPaths = (() => services.map((service) => ({ params: { slug: service.slug }, props: { service } }))) satisfies GetStaticPaths;
+
+const { service } = Astro.props as { service: Service };
+const path = `/leistungen/${service.slug}/`;
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Leistungen', path: '/leistungen/' },
+  { name: service.title, path },
+];
+const references = (await getCollection('projekte'))
+  .filter((p) => p.data.leistungen.includes(service.slug))
+  .sort((a, b) => b.data.order - a.data.order)
+  .slice(0, 3);
+const others = services.filter((s) => s.slug !== service.slug);
+---
+
+<BaseLayout
+  title={service.seo.title}
+  description={service.seo.description}
+  breadcrumbs={breadcrumbs}
+  schema={[serviceSchema({ title: service.title, description: service.seo.description, path })]}
+>
+  <PageHero kicker="Leistung" title={service.h1} lead={service.intro[0]} breadcrumbs={breadcrumbs}>
+    <div class="mt-8 flex flex-col gap-4 xs:flex-row">
+      <a href="#anfrage-form" class="btn-primary">Projekt anfragen</a>
+    </div>
+  </PageHero>
+
+  <!-- Einleitung + Was wir konkret machen -->
+  <section class="section pt-8 sm:pt-10 lg:pt-12" aria-labelledby="leistungsumfang">
+    <div class="container-x grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
+      <div>
+        {service.intro.slice(1).map((p) => <p class="mb-8 text-lg text-muted">{p}</p>)}
+        <h2 id="leistungsumfang" class="text-3xl sm:text-4xl">Was wir konkret machen</h2>
+        <ul class="mt-6 space-y-3">
+          {service.tasks.map((t) => (
+            <li class="flex gap-3 text-lg">
+              <Icon name="check" class="mt-1 size-5 shrink-0 text-bronze-700" strokeWidth={2.2} />
+              <span set:html={ph(t)} />
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="space-y-8">
+        <Media image={servicePhotos[service.slug].src} alt={servicePhotos[service.slug].alt} label={service.photoLabel} sizes="(min-width: 1024px) 50vw, 100vw" />
+        <div class="border-l-4 border-bronze bg-stone p-6 sm:p-8">
+          <h3 class="text-2xl">Kurz erklärt</h3>
+          <dl class="mt-4 space-y-4">
+            {service.glossary.map((g) => (
+              <div>
+                <dt class="font-semibold">{g.term}</dt>
+                <dd class="text-muted">{g.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ablauf -->
+  <section class="section bg-stone" aria-labelledby="ablauf">
+    <div class="container-x">
+      <SectionHeader kicker="Ablauf" title={`So läuft ${service.short} bei uns ab`} id="ablauf" />
+      <ProcessSteps steps={service.process} />
+    </div>
+  </section>
+
+  <!-- Referenzen -->
+  <section class="section" aria-labelledby="referenzen">
+    <div class="container-x">
+      <SectionHeader kicker="Referenzen" title="Passende Projekte" id="referenzen" />
+      {references.length > 0 ? (
+        <ProjectRail projects={references} label="Passende Projekte" />
+      ) : (
+        <p class="text-muted">Referenzen für diesen Bereich folgen in Kürze. <a href="/projekte/" class="link">Alle Projekte ansehen</a></p>
+      )}
+    </div>
+  </section>
+
+  <ContactPerson />
+
+  <!-- Weitere Leistungen -->
+  <section class="bg-white py-14" aria-labelledby="weitere">
+    <div class="container-x">
+      <h2 id="weitere" class="text-2xl sm:text-3xl">Weitere Leistungen</h2>
+      <ul class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {others.map((s) => (
+          <li>
+            <a href={`/leistungen/${s.slug}/`} class="flex items-center gap-4 border border-line p-5 font-display text-xl font-semibold uppercase no-underline hover:border-bronze">
+              <Icon name={s.icon} class="size-8 shrink-0 text-bronze-700" strokeWidth={1.4} />
+              {s.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <div id="anfrage-form">
+    <CtaSection
+      title={`${service.short}: Projekt anfragen`}
+      preselect={service.slug}
+      variant="full"
+    />
+  </div>
+</BaseLayout>

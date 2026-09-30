@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { site } from '../config/site';
+
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Impressum', path: '/impressum/' },
+];
+---
+
+<BaseLayout
+  title="Impressum | Bau Concept Schweiz GmbH"
+  description="Impressum der BauConcept-Schweiz GmbH, Ibelweg 18A, 6300 Zug: Kontaktangaben, Handelsregistereintrag, UID und vertretungsberechtigte Person."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero title="Impressum" breadcrumbs={breadcrumbs} />
+  <section class="section pt-8 sm:pt-10 lg:pt-12">
+    <div class="container-x prose-bc">
+      <h2>Kontaktadresse</h2>
+      <p>
+        {site.legal.name}<br />
+        {site.address.street}<br />
+        {site.address.zip} {site.address.city}<br />
+        Schweiz
+      </p>
+      <p>
+        Telefon: <a href={site.phone.href}>{site.phone.display}</a><br />
+        E-Mail: <a href={`mailto:${site.email}`}>{site.email}</a>
+      </p>
+
+      <h2>Vertretungsberechtigte Person</h2>
+      <p>{site.legal.managingDirector}, Geschäftsführer</p>
+
+      <h2>Handelsregistereintrag</h2>
+      <p>
+        Eingetragener Firmenname: {site.legal.name}<br />
+        Rechtsform: {site.legal.form}<br />
+        Sitz: {site.legal.seat}<br />
+        Registeramt: {site.legal.registry}<br />
+        Firmennummer: {site.legal.hrNumber}<br />
+        UID: {site.legal.uid}
+      </p>
+
+      <h2>Haftungsausschluss</h2>
+      <p>
+        Wir prüfen die Inhalte dieser Website sorgfältig. Für die Richtigkeit, Vollständigkeit und Aktualität der Angaben übernehmen wir
+        dennoch keine Gewähr. Haftungsansprüche wegen Schäden, die aus dem Zugriff auf oder der Nutzung der veröffentlichten Informationen
+        entstehen, sind im gesetzlich zulässigen Rahmen ausgeschlossen.
+      </p>
+
+      <h2>Haftung für Links</h2>
+      <p>
+        Verweise auf Websites Dritter liegen ausserhalb unseres Verantwortungsbereichs. Für deren Inhalte sind ausschliesslich die
+        jeweiligen Betreiber verantwortlich.
+      </p>
+
+      <h2>Urheberrechte</h2>
+      <p>
+        Texte, Bilder, Logos und weitere Inhalte dieser Website gehören der {site.legal.name} oder den genannten Rechteinhabern. Eine
+        Verwendung ist nur mit schriftlicher Zustimmung erlaubt.
+      </p>
+      <h2>Bildnachweis</h2>
+      <p>
+        Die Bilder auf der Startseite, den Leistungsseiten und der Unternehmensseite sind KI-generierte Symbolbilder. Sie zeigen keine
+        konkreten Projekte, Baustellen oder Mitarbeitenden der {site.legal.name}.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

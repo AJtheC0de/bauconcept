@@ -1,0 +1,19 @@
+---
+interface Props {
+  kicker?: string;
+  title: string;
+  lead?: string;
+  dark?: boolean;
+  id?: string;
+  class?: string;
+}
+const { kicker, title, lead, dark = false, id, class: className = '' } = Astro.props;
+// Eigener Abstand (mb-…) ersetzt den Standard, statt mit ihm zu kollidieren
+const spacing = /(^|\s)(\w+:)?mb-/.test(className) ? '' : 'mb-10 sm:mb-14';
+---
+
+<div class:list={['max-w-3xl', spacing, className]}>
+  {kicker && <p class:list={['kicker', dark ? 'text-bronze-300' : 'text-bronze-700']}>{kicker}</p>}
+  <h2 id={id} class:list={[dark ? 'text-white' : 'text-ink']}>{title}</h2>
+  {lead && <p class:list={['mt-5 text-lg', dark ? 'text-muted-dark' : 'text-muted']}>{lead}</p>}
+</div>

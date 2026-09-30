@@ -1,0 +1,255 @@
+---
+/**
+ * Allgemeines Karussell: unter dem Breakpoint Wisch-Karussell (Scroll-Snap), darüber normales Raster.
+ * Einträge im Slot als <li data-rail-item class={railItemClass[breakpoint]}> übergeben.
+ *
+ * autoplay (ms): blättert auf Mobile selbständig langsam weiter. Pausiert bei Berührung/Hover/Fokus,
+ * ausserhalb des Sichtbereichs und im Hintergrund-Tab; stoppt ganz, sobald man selbst blättert; aus bei «Bewegung reduzieren».
+ */
+import Icon from './Icon.astro';
+import { railTrackClass, railControlsHidden, railMobileQuery, type RailBreakpoint } from '../lib/rail';
+
+interface Props {
+  count: number;
+  label: string;
+  /** z. B. «Projekt», «Leistung» – für Screenreader-Beschriftungen */
+  itemName: string;
+  breakpoint?: RailBreakpoint;
+  autoplay?: number;
+  /** Raster-Klassen ab Breakpoint (Spalten, Abstände, Rahmen) */
+  gridClass?: string;
+  gap?: string;
+}
+const { count, label, itemName, breakpoint = 'md', autoplay = 0, gridClass = '', gap = 'gap-4' } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<div class="rail" data-rail data-autoplay={autoplay || undefined} data-mobile-query={railMobileQuery[breakpoint]} style={autoplay ? `--rail-interval:${autoplay}ms` : undefined}>
+  <ul
+    class:list={['rail-track -mx-4 flex snap-x snap-mandatory scroll-px-4 overflow-x-auto overscroll-x-contain px-4 pb-1', gap, railTrackClass[breakpoint], gridClass]}
+    aria-label={`${label} – auf Mobilgeräten seitlich wischen`}
+    tabindex="0"
+    data-rail-track
+  >
+    <slot />
+  </ul>
+
+  {
+    count > 1 && (
+      <div class:list={['mt-6 flex items-center justify-between gap-4', railControlsHidden[breakpoint]]} data-rail-controls>
+        <div class="flex items-center gap-4">
+          <div class="-ml-1.5 flex items-center">
+            {Array.from({ length: count }, (_, i) => (
+              <button type="button" class="rail-dot" aria-label={`${itemName} ${i + 1} von ${count} anzeigen`} aria-current={i === 0 ? 'true' : undefined} data-rail-dot={i}>
+                <span class="rail-dot-bar" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+          <p class="font-display text-sm font-semibold tracking-[0.18em] text-muted tabular-nums" aria-hidden="true">
+            <span class="text-ink" data-rail-current>01</span> / {pad(count)}
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="rail-btn" aria-label="Vorherige Karte" data-rail-prev disabled>
+            <Icon name="arrow" class="size-5 rotate-180" />
+          </button>
+          <button type="button" class="rail-btn" aria-label="Nächste Karte" data-rail-next>
+            <Icon name="arrow" class="size-5" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+</div>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  document.querySelectorAll<HTMLElement>('[data-rail]').forEach((rail) => {
+    const track = rail.querySelector<HTMLElement>('[data-rail-track]')!;
+    const items = [...track.querySelectorAll<HTMLElement>('[data-rail-item]')];
+    const dots = [...rail.querySelectorAll<HTMLButtonElement>('[data-rail-dot]')];
+    const current = rail.querySelector<HTMLElement>('[data-rail-current]');
+    const prev = rail.querySelector<HTMLButtonElement>('[data-rail-prev]');
+    const next = rail.querySelector<HTMLButtonElement>('[data-rail-next]');
+    if (items.length < 2) return;
+
+    const offsetOf = (i: number) => items[i].offsetLeft - items[0].offsetLeft;
+    let active = 0;
+    let animating = false;
+
+    // Langsames, weiches Scrollen (für Autoplay); Snap währenddessen aus, sonst springt es
+    const glide = (to: number, duration: number) => {
+      const from = track.scrollLeft;
+      const start = performance.now();
+      animating = true;
+      track.style.scrollSnapType = 'none';
+      const step = (now: number) => {
+        const t = Math.min((now - start) / duration, 1);
+        track.scrollLeft = from + (to - from) * ease(t);
+        if (t < 1) requestAnimationFrame(step);
+        else {
+          track.style.scrollSnapType = '';
+          animating = false;
+        }
+      };
+      requestAnimationFrame(step);
+    };
+    const go = (i: number, slow = false) => {
+      const target = offsetOf(Math.max(0, Math.min(items.length - 1, i)));
+      if (slow && !reduce.matches) glide(target, 1400);
+      else track.scrollTo({ left: target, behavior: reduce.matches ? 'auto' : 'smooth' });
+    };
+
+    const update = () => {
+      const step = offsetOf(1) || 1;
+      const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+      const idx = atEnd ? items.length - 1 : Math.round(track.scrollLeft / step);
+      if (idx !== active) restartProgress();
+      active = idx;
+      dots.forEach((d, i) => (i === active ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+      if (current) current.textContent = String(active + 1).padStart(2, '0');
+      if (prev) prev.disabled = active === 0;
+      if (next) next.disabled = active === items.length - 1;
+    };
+
+    let raf = 0;
+    track.addEventListener('scroll', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    }, { passive: true });
+    dots.forEach((d, i) => d.addEventListener('click', () => { go(i); restartTimer(); }));
+    prev?.addEventListener('click', () => { go(active - 1); restartTimer(); });
+    next?.addEventListener('click', () => { go(active + 1); restartTimer(); });
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(active + 1); restartTimer(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(active - 1); restartTimer(); }
+    });
+
+    // --- Autoplay -------------------------------------------------------------------------
+    const interval = Number(rail.dataset.autoplay) || 0;
+    const mobile = matchMedia(rail.dataset.mobileQuery || '(width < 48rem)');
+    let timer = 0;
+    let userPaused = false;
+    let hover = false;
+    let visible = false;
+
+    function restartProgress() {
+      rail.classList.remove('is-counting');
+      void rail.offsetWidth; // Animation neu starten
+      if (running()) rail.classList.add('is-counting');
+    }
+    const running = () => interval > 0 && mobile.matches && !reduce.matches && !userPaused && !hover && visible && !document.hidden;
+    function restartTimer() {
+      clearTimeout(timer);
+      rail.classList.toggle('is-playing', running());
+      restartProgress();
+      if (!running()) return;
+      timer = window.setTimeout(() => {
+        if (!running() || animating) return restartTimer();
+        go(active >= items.length - 1 ? 0 : active + 1, true);
+        restartTimer();
+      }, interval);
+    }
+
+    if (interval > 0) {
+      new IntersectionObserver(([e]) => { visible = e.isIntersecting; restartTimer(); }, { threshold: 0.5 }).observe(track);
+      const pause = () => { hover = true; restartTimer(); };
+      const resume = () => { hover = false; restartTimer(); };
+      track.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && pause());
+      track.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && resume());
+      track.addEventListener('touchstart', pause, { passive: true });
+      track.addEventListener('touchend', () => setTimeout(resume, 2500), { passive: true });
+      // Nur Fokus auf den Karten pausiert – nicht auf Punkten/Pfeilen/Pause-Knopf
+      track.addEventListener('focusin', pause);
+      track.addEventListener('focusout', (e) => { if (!track.contains(e.relatedTarget as Node)) resume(); });
+      document.addEventListener('visibilitychange', restartTimer);
+      mobile.addEventListener('change', restartTimer);
+      // Wer selbst blättert, übernimmt die Kontrolle: Autoplay bleibt danach aus (WCAG 2.2.2, ohne Pause-Knopf)
+      const takeOver = () => { userPaused = true; restartTimer(); };
+      dots.forEach((d) => d.addEventListener('click', takeOver));
+      prev?.addEventListener('click', takeOver);
+      next?.addEventListener('click', takeOver);
+      track.addEventListener('keydown', (e) => (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && takeOver());
+      track.addEventListener('touchmove', takeOver, { passive: true, once: true });
+      track.addEventListener('wheel', (e) => Math.abs(e.deltaX) > Math.abs(e.deltaY) && takeOver(), { passive: true });
+    }
+  });
+</script>
+
+<style>
+  .rail-track {
+    scrollbar-width: none;
+  }
+  .rail-track::-webkit-scrollbar {
+    display: none;
+  }
+  .rail-track:focus-visible {
+    outline-offset: 4px;
+  }
+  /* Button = 24px Tippfläche (WCAG 2.5.8), sichtbar ist nur der Balken darin */
+  .rail-dot {
+    display: flex;
+    height: 1.5rem;
+    min-width: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.375rem;
+  }
+  .rail-dot-bar {
+    position: relative;
+    display: block;
+    height: 0.375rem;
+    width: 0.375rem;
+    overflow: hidden;
+    background: var(--color-line);
+    transition:
+      width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      background-color 0.35s;
+  }
+  .rail-dot[aria-current='true'] .rail-dot-bar {
+    width: 1.75rem;
+    background: var(--color-bronze);
+  }
+  /* Autoplay: aktiver Balken füllt sich als Countdown */
+  .rail.is-playing .rail-dot[aria-current='true'] .rail-dot-bar {
+    background: var(--color-line);
+  }
+  .rail.is-playing .rail-dot[aria-current='true'] .rail-dot-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--color-bronze);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .rail.is-playing.is-counting .rail-dot[aria-current='true'] .rail-dot-bar::after {
+    animation: rail-count var(--rail-interval, 5s) linear forwards;
+  }
+  @keyframes rail-count {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .rail-btn {
+    display: flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--color-ink);
+    color: var(--color-ink);
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      opacity 0.2s;
+  }
+  .rail-btn:not(:disabled):active {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .rail-btn:disabled {
+    opacity: 0.25;
+  }
+</style>

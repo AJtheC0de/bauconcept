@@ -1,0 +1,101 @@
+---
+import Icon from './Icon.astro';
+interface Props {
+  successTitle: string;
+  successText: string;
+  errorText?: string;
+}
+const {
+  successTitle,
+  successText,
+  errorText = 'Bitte versuchen Sie es erneut oder rufen Sie uns direkt an.',
+} = Astro.props;
+---
+
+<div data-form-status role="status" aria-live="polite" tabindex="-1" class="outline-none">
+  <div data-state="success" hidden class="flex gap-4 border-l-4 border-green-700 bg-green-50 p-5">
+    <Icon name="checkCircle" class="size-7 shrink-0 text-green-800" />
+    <div>
+      <p class="font-semibold">{successTitle}</p>
+      <p class="mt-1 text-muted">{successText}</p>
+    </div>
+  </div>
+  <div data-state="error" hidden class="flex gap-4 border-l-4 border-red-700 bg-red-50 p-5">
+    <Icon name="alert" class="size-7 shrink-0 text-red-800" />
+    <div>
+      <p class="font-semibold">Das hat leider nicht geklappt.</p>
+      <p class="mt-1 text-muted" data-error-text data-default={errorText}>{errorText}</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const forms = document.querySelectorAll<HTMLFormElement>('form[data-ajax-form]');
+
+  forms.forEach((form) => {
+    form.noValidate = true; // eigene Prüfung mit JS; ohne JS greift die Browser-Validierung
+    const time = form.querySelector<HTMLInputElement>('[data-form-time]');
+    if (time) time.value = String(Date.now());
+
+    const status = form.querySelector<HTMLElement>('[data-form-status]')!;
+    const ok = status.querySelector<HTMLElement>('[data-state="success"]')!;
+    const err = status.querySelector<HTMLElement>('[data-state="error"]')!;
+    const errText = status.querySelector<HTMLElement>('[data-error-text]')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const buttonLabel = button.textContent;
+    const maxBytes = Number(form.dataset.maxBytes);
+
+    const showError = (msg?: string) => {
+      ok.hidden = true;
+      errText.textContent = msg || errText.dataset.default || '';
+      err.hidden = false;
+      status.focus();
+    };
+
+    // Rückleitung nach Fehler beim Versand ohne JavaScript (…?status=fehler)
+    if (new URLSearchParams(location.search).get('status') === 'fehler' && location.hash === `#${form.id}`) {
+      err.hidden = false;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      ok.hidden = true;
+      err.hidden = true;
+
+      if (!form.checkValidity()) {
+        const firstInvalid = form.querySelector<HTMLElement>(':invalid:not(fieldset)');
+        form.reportValidity();
+        firstInvalid?.focus();
+        return;
+      }
+
+      const files = [...form.querySelectorAll<HTMLInputElement>('input[type="file"]')].flatMap((i) => [...(i.files ?? [])]);
+      const total = files.reduce((sum, f) => sum + f.size, 0);
+      if (total > maxBytes) {
+        showError(`Die Dateien sind zusammen ${(total / 1024 / 1024).toFixed(1)} MB gross (max. ${Math.round(maxBytes / 1024 / 1024)} MB). Bitte verkleinern oder per E-Mail senden.`);
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Wird gesendet …';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) throw new Error(data.message);
+        form.reset();
+        if (time) time.value = String(Date.now());
+        ok.hidden = false;
+        status.focus();
+      } catch (error) {
+        showError(error instanceof Error ? error.message : undefined);
+      } finally {
+        button.disabled = false;
+        button.textContent = buttonLabel;
+      }
+    });
+  });
+</script>

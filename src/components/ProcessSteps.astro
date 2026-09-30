@@ -1,0 +1,124 @@
+---
+/**
+ * Ablauf als «Baufortschritt»: Beim Einblenden füllen sich die Nummernfelder nacheinander,
+ * die Bronze-Linie baut sich zum nächsten Schritt auf. Ohne JS / bei reduced-motion: Endzustand.
+ */
+interface Props {
+  steps: { title: string; text: string }[];
+  dark?: boolean;
+  headingLevel?: 'h3' | 'h4';
+}
+const { steps, dark = false, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const cols = steps.length === 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4';
+---
+
+<ol class:list={['process grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-8', cols, dark ? 'process-dark' : 'process-light']} data-animate>
+  {
+    steps.map((s, i) => (
+      <li class:list={['step relative', i === steps.length - 1 && 'step-last']} style={`--i:${i}`}>
+        <div class="flex items-center gap-4">
+          <span class="step-box relative flex size-12 shrink-0 items-center justify-center overflow-hidden border-2 border-bronze font-display text-2xl font-bold" aria-hidden="true">
+            <span class="step-box-fill absolute inset-0 bg-bronze" />
+            <span class="step-num relative">{String(i + 1).padStart(2, '0')}</span>
+          </span>
+          {i < steps.length - 1 && (
+            <span class:list={['step-track relative hidden h-0.5 flex-1 overflow-hidden lg:block', dark ? 'bg-white/15' : 'bg-line']} aria-hidden="true">
+              <span class="step-track-fill absolute inset-0 bg-bronze" />
+            </span>
+          )}
+        </div>
+        <div class="step-body">
+          <H class:list={['mt-5 text-2xl', dark ? 'text-white' : '']}>
+            <span class="sr-only">Schritt {i + 1}: </span>
+            {s.title}
+          </H>
+          <p class:list={['mt-2', dark ? 'text-muted-dark' : 'text-muted']}>{s.text}</p>
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  @reference '../styles/global.css';
+
+  /* Endzustand (ohne JS / reduced-motion) */
+  .step-num {
+    transition: color 0.3s ease calc(var(--i) * 420ms + 180ms);
+    @apply text-ink;
+  }
+
+  /* Mobile (1 Spalte): senkrechte Verbindung zum nächsten Schritt */
+  @media (width < 40rem) {
+    .step:not(.step-last)::before,
+    .step:not(.step-last)::after {
+      content: '';
+      position: absolute;
+      left: 23px;
+      top: 3.5rem;
+      bottom: -2.25rem;
+      width: 2px;
+    }
+    .step:not(.step-last)::before {
+      background: var(--color-line);
+    }
+    .process-dark .step:not(.step-last)::before {
+      background: rgb(255 255 255 / 0.15);
+    }
+    .step:not(.step-last)::after {
+      background: var(--color-bronze);
+      transform-origin: top;
+    }
+    .step-body {
+      padding-left: 4rem;
+      margin-top: -3.65rem;
+    }
+  }
+
+  /* Animation: nur wenn per JS scharf geschaltet */
+  .is-armed .step-box-fill {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 420ms);
+  }
+  .is-armed .step-num {
+    @apply text-bronze-700;
+  }
+  .is-armed.process-dark .step-num {
+    @apply text-bronze-300;
+  }
+  .is-armed .step-track-fill {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.42s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 420ms + 300ms);
+  }
+  .is-armed .step:not(.step-last)::after {
+    transform: scaleY(0);
+    transition: transform 0.42s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 420ms + 300ms);
+  }
+  .is-armed .step-body {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.5s ease calc(var(--i) * 420ms + 120ms),
+      transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 420ms + 120ms);
+  }
+
+  .is-armed.is-active .step-box-fill {
+    transform: scaleY(1);
+  }
+  .is-armed.is-active .step-num {
+    @apply text-ink;
+  }
+  .is-armed.is-active .step-track-fill {
+    transform: scaleX(1);
+  }
+  .is-armed.is-active .step:not(.step-last)::after {
+    transform: scaleY(1);
+  }
+  .is-armed.is-active .step-body {
+    opacity: 1;
+    transform: none;
+  }
+</style>

@@ -1,0 +1,147 @@
+---
+/**
+ * Ansprechperson als grosse Karte im Stil der Visitenkarte:
+ * Porträt links mit diagonalem Schnitt + Bronze-Kante, rechts dunkler Kontaktteil mit grossen, klickbaren Zeilen
+ * (Standort → Anfahrtskarte auf /kontakt/, Zentrale, E-Mail).
+ */
+import { site, fullAddress } from '../config/site';
+import Media from './Media.astro';
+import { photos } from '../data/photos';
+import Icon from './Icon.astro';
+
+interface Props {
+  title?: string;
+}
+const { title = 'Ihr Ansprechpartner' } = Astro.props;
+const p = site.contactPerson;
+
+const rows = [
+  { label: 'Standort', value: fullAddress, href: '/kontakt/#anfahrt', icon: 'pin' },
+  { label: 'Zentrale', value: site.phone.display, href: site.phone.href, icon: 'phone' },
+  { label: 'E-Mail', value: site.email, href: `mailto:${site.email}`, icon: 'mail' },
+] as const;
+---
+
+<section class="section bg-stone" aria-labelledby="ansprechperson">
+  <div class="container-x">
+    <div class="cp grid grid-cols-1 overflow-hidden bg-ink text-white shadow-[0_30px_60px_-30px_rgb(0_0_0/0.45)] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]" data-animate>
+      <!-- Porträt mit diagonalem Schnitt -->
+      <div class="relative min-h-[22rem] sm:min-h-[26rem]">
+        <div class="cp-photo absolute inset-0">
+          <Media image={photos.kontakt.src} alt={photos.kontakt.alt} label={p.photoLabel} aspect="h-full" sizes="(min-width: 768px) 40vw, 100vw" />
+        </div>
+        <svg class="cp-edge absolute inset-0 hidden h-full w-full md:block" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="100" y1="0" x2="84" y2="100" stroke="var(--color-bronze)" stroke-width="3" vector-effect="non-scaling-stroke" />
+        </svg>
+        <svg class="cp-edge absolute inset-0 h-full w-full md:hidden" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="0" y1="100" x2="100" y2="88" stroke="var(--color-bronze)" stroke-width="3" vector-effect="non-scaling-stroke" />
+        </svg>
+      </div>
+
+      <!-- Kontaktteil -->
+      <div class="cp-body flex flex-col p-7 sm:p-10 lg:p-14">
+        <p class="kicker text-bronze-300">Persönlich</p>
+        <h2 id="ansprechperson" class="text-white">{title}</h2>
+        <p class="mt-5 max-w-lg text-lg leading-relaxed text-muted-dark">
+          Von der ersten Anfrage bis zur Übergabe sprechen Sie mit derselben Person. Kein Callcenter, keine Weiterleitung.
+        </p>
+
+        <ul class="mt-9 border-b border-white/10">
+          {
+            rows.map((r) => {
+              const inner = (
+                <>
+                  <span class="flex min-w-0 items-center gap-4">
+                    <span class="flex size-10 shrink-0 items-center justify-center border border-white/15 text-bronze" aria-hidden="true">
+                      <Icon name={r.icon} class="size-5" />
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-dark">{r.label}</span>
+                      <span class="block font-display text-lg font-semibold tracking-wide [overflow-wrap:anywhere] xs:text-xl sm:text-2xl">{r.value}</span>
+                    </span>
+                  </span>
+                  {r.href && (
+                    <span class="cp-arrow flex size-10 shrink-0 items-center justify-center text-white/50 transition-all duration-300" aria-hidden="true">
+                      <Icon name="arrow" class="size-5" />
+                    </span>
+                  )}
+                </>
+              );
+              return (
+                <li class="border-t border-white/10">
+                  {r.href ? (
+                    <a href={r.href} class="cp-row group flex items-center justify-between gap-4 py-4 text-white no-underline">{inner}</a>
+                  ) : (
+                    <div class="flex items-center justify-between gap-4 py-4">{inner}</div>
+                  )}
+                </li>
+              );
+            })
+          }
+        </ul>
+
+        <div class="mt-8">
+          <a href="/kontakt/" class="btn-primary">Projekt anfragen <Icon name="arrow" class="size-5" /></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cp-photo {
+    clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  }
+  @media (width >= 48rem) {
+    .cp-photo {
+      clip-path: polygon(0 0, 100% 0, 84% 100%, 0 100%);
+    }
+  }
+  .cp-row:hover .cp-arrow,
+  .cp-row:focus-visible .cp-arrow {
+    color: var(--color-ink);
+    background: var(--color-bronze);
+    transform: translateX(2px);
+  }
+  .cp-row:hover :global(.font-display) {
+    color: var(--color-bronze-300);
+  }
+
+  /* Einblenden */
+  :global(.is-armed).cp .cp-photo {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  :global(.is-armed).cp .cp-edge {
+    opacity: 0;
+    transition: opacity 0.5s ease 0.8s;
+  }
+  :global(.is-armed).cp .cp-body > * {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  :global(.is-armed).cp .cp-body > :nth-child(2) { transition-delay: 0.1s; }
+  :global(.is-armed).cp .cp-body > :nth-child(3) { transition-delay: 0.2s; }
+  :global(.is-armed).cp .cp-body > :nth-child(4) { transition-delay: 0.3s; }
+  :global(.is-armed).cp .cp-body > :nth-child(5) { transition-delay: 0.4s; }
+  :global(.is-armed).cp .cp-body > :nth-child(6) { transition-delay: 0.5s; }
+
+  :global(.is-active).cp .cp-photo {
+    clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  }
+  @media (width >= 48rem) {
+    :global(.is-active).cp .cp-photo {
+      clip-path: polygon(0 0, 100% 0, 84% 100%, 0 100%);
+    }
+  }
+  :global(.is-active).cp .cp-edge {
+    opacity: 1;
+  }
+  :global(.is-active).cp .cp-body > * {
+    opacity: 1;
+    transform: none;
+  }
+</style>

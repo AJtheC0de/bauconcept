@@ -1,0 +1,95 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import { services } from '../../data/services';
+
+const projects = (await getCollection('projekte')).sort((a, b) => b.data.order - a.data.order);
+const breadcrumbs = [
+  { name: 'Startseite', path: '/' },
+  { name: 'Projekte', path: '/projekte/' },
+];
+---
+
+<BaseLayout
+  title="Projekte & Referenzen Tiefbau Zug | Bau Concept"
+  description="Referenzprojekte der Bau Concept Schweiz GmbH: Aushub, Strassenbau, Werkleitungen und Kanalisation in Zug und Umgebung – filterbar nach Leistung."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero
+    kicker="Referenzen"
+    title="Projekte"
+    lead="Ein Einblick in unsere Arbeit: was die Aufgabe war, was wir gemacht haben und was dabei herausgekommen ist."
+    breadcrumbs={breadcrumbs}
+  />
+
+  <section class="section pt-8 sm:pt-10 lg:pt-12" aria-label="Projektliste">
+    <div class="container-x">
+      <div class="filter-bar mb-10" data-filter>
+        <p id="filter-label" class="mb-3 font-semibold">Nach Leistung filtern</p>
+        <div class="flex flex-wrap gap-2" role="group" aria-labelledby="filter-label">
+          <button type="button" data-filter-btn="" aria-pressed="true" class="filter-btn">Alle</button>
+          {services.map((s) => (
+            <button type="button" data-filter-btn={s.slug} aria-pressed="false" class="filter-btn">{s.short}</button>
+          ))}
+        </div>
+        <p class="sr-only" role="status" aria-live="polite" data-filter-count></p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3" data-projects>
+        {projects.map((p) => <ProjectCard project={p} headingLevel="h2" />)}
+      </div>
+      <p class="mt-10 text-muted" data-empty hidden>Für diese Leistung sind noch keine Projekte erfasst.</p>
+    </div>
+  </section>
+
+  <CtaSection title="Ihr Projekt als Nächstes?" variant="short" />
+</BaseLayout>
+
+<style>
+  @reference '../../styles/global.css';
+  /* Nur mit JS sichtbar – .js wird im <head> gesetzt, daher kein Layout-Springen */
+  .filter-bar {
+    display: none;
+  }
+  :global(.js) .filter-bar {
+    display: block;
+  }
+  .filter-btn {
+    @apply min-h-11 border-2 border-ink px-4 py-2 font-display font-semibold uppercase tracking-wider transition-colors hover:bg-stone;
+  }
+  .filter-btn[aria-pressed='true'] {
+    @apply bg-ink text-white;
+  }
+</style>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-filter]');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-projects] > [data-leistungen]')];
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  const count = document.querySelector<HTMLElement>('[data-filter-count]');
+  if (bar) {
+    const buttons = [...bar.querySelectorAll<HTMLButtonElement>('[data-filter-btn]')];
+    const apply = (slug: string, updateUrl = true) => {
+      let visible = 0;
+      cards.forEach((c) => {
+        const show = !slug || (c.dataset.leistungen ?? '').split(' ').includes(slug);
+        c.hidden = !show;
+        if (show) visible++;
+      });
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filterBtn === slug)));
+      if (empty) empty.hidden = visible > 0;
+      if (count) count.textContent = `${visible} Projekt${visible === 1 ? '' : 'e'} angezeigt`;
+      if (updateUrl) {
+        const url = new URL(location.href);
+        slug ? url.searchParams.set('leistung', slug) : url.searchParams.delete('leistung');
+        history.replaceState(null, '', url);
+      }
+    };
+    buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.filterBtn ?? '')));
+    const initial = new URL(location.href).searchParams.get('leistung');
+    if (initial && buttons.some((b) => b.dataset.filterBtn === initial)) apply(initial, false);
+  }
+</script>

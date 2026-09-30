@@ -1,0 +1,23 @@
+---
+/** Projektkarten: Mobile = Wisch-Karussell, ab md = Raster (2/3 Spalten). */
+import type { CollectionEntry } from 'astro:content';
+import ProjectCard from './ProjectCard.astro';
+import Rail from './Rail.astro';
+import { railItemClass } from '../lib/rail';
+
+interface Props {
+  projects: CollectionEntry<'projekte'>[];
+  label?: string;
+}
+const { projects, label = 'Projekte' } = Astro.props;
+---
+
+<Rail count={projects.length} label={label} itemName="Projekt" breakpoint="md" gridClass="md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+  {
+    projects.map((p) => (
+      <li class={railItemClass.md} data-rail-item>
+        <ProjectCard project={p} />
+      </li>
+    ))
+  }
+</Rail>

@@ -1,0 +1,348 @@
+---
+/**
+ * Consent-Manager: schwebendes Panel (keine Sperre der Seite).
+ * «Alle akzeptieren» und «Nur notwendige» sind gleichwertig; Einstellungen pro Kategorie mit Dienst-Details.
+ * Speichert die Auswahl im Local Storage (kein Cookie). Erneut öffnen: Footer «Cookie-Einstellungen».
+ */
+import { consentGroups } from '../data/consent';
+import { site } from '../config/site';
+import Icon from './Icon.astro';
+
+const { analytics } = site;
+---
+
+<div
+  class="consent pointer-events-none fixed inset-x-0 z-50 flex justify-center px-3 sm:justify-start sm:px-6"
+  hidden
+  data-consent
+  data-analytics-provider={analytics.provider ?? ''}
+  data-analytics-src={analytics.scriptSrc}
+  data-analytics-domain={analytics.domain}
+  data-analytics-id={analytics.umamiWebsiteId}
+>
+  <section
+    role="dialog"
+    aria-modal="false"
+    aria-labelledby="consent-title"
+    aria-describedby="consent-desc"
+    class="consent-card pointer-events-auto relative w-full max-w-[27rem] overflow-hidden border border-white/10 bg-ink/95 text-white shadow-[0_24px_60px_-12px_rgb(0_0_0/0.55)] backdrop-blur-md"
+  >
+    <div class="h-[3px] bg-gradient-to-r from-bronze via-bronze-300 to-bronze/0" aria-hidden="true"></div>
+
+    <!-- Hauptansicht -->
+    <div class="consent-view p-5 sm:p-6" data-view="main">
+      <div class="flex items-start gap-4">
+        <span class="flex size-11 shrink-0 items-center justify-center border border-bronze/40 text-bronze" aria-hidden="true">
+          <Icon name="shield" class="size-6" strokeWidth={1.5} />
+        </span>
+        <div>
+          <p id="consent-title" class="font-display text-2xl font-bold uppercase leading-tight tracking-wide">Ihre Privatsphäre</p>
+          <p class="mt-0.5 text-xs font-semibold uppercase tracking-[0.18em] text-bronze-300">Keine Cookies ohne Ihr Okay</p>
+        </div>
+      </div>
+      <p id="consent-desc" class="mt-4 text-[0.95rem] leading-relaxed text-muted-dark">
+        Diese Website setzt selbst keine Cookies. Inhalte von Drittanbietern – etwa die Karte auf der Kontaktseite – laden wir erst, wenn Sie
+        zustimmen. Sie können Ihre Wahl jederzeit ändern.{' '}
+        <a href="/datenschutz/#cookies" class="link-dark whitespace-nowrap">Mehr erfahren</a>
+      </p>
+      <div class="mt-5 grid grid-cols-2 gap-2.5">
+        <button type="button" class="consent-btn consent-btn-solid" data-consent-action="all">Alle akzeptieren</button>
+        <button type="button" class="consent-btn consent-btn-ghost" data-consent-action="necessary">Nur notwendige</button>
+      </div>
+      <button type="button" class="consent-more group mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-white/80 hover:text-white" data-consent-action="settings">
+        Einstellungen anpassen
+        <Icon name="arrow" class="size-4 transition-transform group-hover:translate-x-0.5" />
+      </button>
+    </div>
+
+    <!-- Einstellungen -->
+    <div class="consent-view max-h-[min(70vh,34rem)] overflow-y-auto overscroll-contain p-5 sm:p-6" data-view="settings" hidden>
+      <div class="flex items-center justify-between gap-4">
+        <p class="font-display text-2xl font-bold uppercase tracking-wide" id="consent-settings-title">Einstellungen</p>
+        <button type="button" class="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-white/70 hover:text-white" data-consent-action="back">
+          <Icon name="arrow" class="size-4 rotate-180" /> Zurück
+        </button>
+      </div>
+      <p class="mt-2 text-sm text-muted-dark">Wählen Sie, welche Dienste wir laden dürfen.</p>
+
+      <ul class="mt-5 space-y-3">
+        {
+          consentGroups.map((g) => (
+            <li class="border border-white/10 bg-white/[0.03] p-4">
+              <div class="flex items-center justify-between gap-4">
+                <span class="font-semibold" id={`consent-cat-${g.id}`}>{g.title}</span>
+                {g.required ? (
+                  <span class="text-xs font-semibold uppercase tracking-wider text-bronze-300">Immer aktiv</span>
+                ) : (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked="false"
+                    aria-labelledby={`consent-cat-${g.id}`}
+                    class="consent-switch"
+                    data-consent-toggle={g.id}
+                  >
+                    <span class="consent-switch-knob" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+              <p class="mt-2 text-sm text-muted-dark">{g.description}</p>
+              <details class="consent-details mt-2">
+                <summary class="inline-flex min-h-9 cursor-pointer items-center gap-1.5 text-sm font-semibold text-bronze-300 hover:text-white">
+                  <span class="consent-chevron" aria-hidden="true">›</span>
+                  {g.services.length === 1 ? `Details: ${g.services[0].name}` : `${g.services.length} Dienste`}
+                </summary>
+                {g.services.map((s) => (
+                  <dl class="mt-2 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-1.5 border-l-2 border-bronze/50 pl-3 text-[0.8rem] leading-snug">
+                    <dt class="text-white/55">Dienst</dt><dd>{s.name}</dd>
+                    <dt class="text-white/55">Anbieter</dt><dd>{s.provider}</dd>
+                    <dt class="text-white/55">Zweck</dt><dd>{s.purpose}</dd>
+                    <dt class="text-white/55">Speicherung</dt><dd>{s.storage}</dd>
+                    <dt class="text-white/55">Übermittlung</dt><dd>{s.transfer}</dd>
+                    {s.privacyUrl && (<><dt class="text-white/55">Datenschutz</dt><dd><a href={s.privacyUrl} target="_blank" rel="noopener" class="link-dark">Richtlinie des Anbieters</a></dd></>)}
+                  </dl>
+                ))}
+              </details>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="sticky bottom-0 -mx-5 -mb-5 mt-5 grid grid-cols-2 gap-2.5 bg-ink/95 p-5 pt-3 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6">
+        <button type="button" class="consent-btn consent-btn-ghost" data-consent-action="save">Auswahl speichern</button>
+        <button type="button" class="consent-btn consent-btn-solid" data-consent-action="all">Alle akzeptieren</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  import { readConsent, saveConsent, onConsent, onOpenConsent, type Choices } from '../lib/consent-client';
+
+  const root = document.querySelector<HTMLElement>('[data-consent]')!;
+  const views = {
+    main: root.querySelector<HTMLElement>('[data-view="main"]')!,
+    settings: root.querySelector<HTMLElement>('[data-view="settings"]')!,
+  };
+  const toggles = [...root.querySelectorAll<HTMLButtonElement>('[data-consent-toggle]')];
+  let returnFocus: HTMLElement | null = null;
+
+  // --- Dienste nach Einwilligung laden -------------------------------------------------
+  const loadAnalytics = () => {
+    const { analyticsProvider: provider, analyticsSrc: src, analyticsDomain: domain, analyticsId: id } = root.dataset;
+    if (!provider || !src || document.querySelector('script[data-bc-analytics]')) return;
+    const s = document.createElement('script');
+    s.defer = true;
+    s.src = src;
+    s.dataset.bcAnalytics = '';
+    if (provider === 'plausible' && domain) s.dataset.domain = domain;
+    if (provider === 'umami' && id) s.dataset.websiteId = id;
+    document.head.append(s);
+  };
+  const apply = (c: Choices | null) => {
+    if (c?.statistics) loadAnalytics();
+  };
+
+  // --- Anzeige ------------------------------------------------------------------------
+  const syncToggles = () => {
+    const c = readConsent();
+    toggles.forEach((t) => t.setAttribute('aria-checked', String(!!c?.[t.dataset.consentToggle as keyof Choices])));
+  };
+  const showView = (name: keyof typeof views, focus = false) => {
+    (Object.keys(views) as (keyof typeof views)[]).forEach((k) => (views[k].hidden = k !== name));
+    if (focus) views[name].querySelector<HTMLElement>('button, [href]')?.focus();
+  };
+  const open = (view: keyof typeof views = 'main', focus = false) => {
+    syncToggles();
+    showView(view, focus);
+    root.hidden = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add('is-open')));
+  };
+  const close = () => {
+    root.classList.remove('is-open');
+    const done = () => {
+      root.hidden = true;
+      returnFocus?.focus();
+      returnFocus = null;
+    };
+    matchMedia('(prefers-reduced-motion: reduce)').matches ? done() : setTimeout(done, 320);
+  };
+
+  // --- Aktionen -----------------------------------------------------------------------
+  const allOn = (): Choices => Object.fromEntries(toggles.map((t) => [t.dataset.consentToggle, true]));
+  root.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement).closest<HTMLElement>('[data-consent-action], [data-consent-toggle]');
+    if (!target) return;
+    if (target.dataset.consentToggle) {
+      target.setAttribute('aria-checked', String(target.getAttribute('aria-checked') !== 'true'));
+      return;
+    }
+    switch (target.dataset.consentAction) {
+      case 'all':
+        saveConsent(allOn());
+        close();
+        break;
+      case 'necessary':
+        saveConsent({});
+        close();
+        break;
+      case 'save':
+        saveConsent(Object.fromEntries(toggles.map((t) => [t.dataset.consentToggle, t.getAttribute('aria-checked') === 'true'])));
+        close();
+        break;
+      case 'settings':
+        showView('settings', true);
+        break;
+      case 'back':
+        showView('main', true);
+        break;
+    }
+  });
+  root.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !views.settings.hidden) showView('main', true);
+  });
+
+  onConsent(apply);
+  onOpenConsent(() => {
+    returnFocus = document.activeElement as HTMLElement | null;
+    open('settings', true);
+  });
+  document.querySelectorAll('[data-consent-open]').forEach((b) =>
+    b.addEventListener('click', () => {
+      returnFocus = b as HTMLElement;
+      open('settings', true);
+    }),
+  );
+
+  // --- Start --------------------------------------------------------------------------
+  const existing = readConsent();
+  if (existing) apply(existing);
+  else setTimeout(() => open('main'), 600); // kurz nach dem Laden, damit der erste Eindruck der Seite gehört
+</script>
+
+<style>
+  .consent {
+    bottom: calc(4.25rem + env(safe-area-inset-bottom)); /* über der mobilen Anruf-Leiste */
+  }
+  @media (width >= 48rem) {
+    .consent {
+      bottom: 1.5rem;
+    }
+  }
+  .consent-card {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+    transition:
+      opacity 0.35s ease,
+      transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .consent.is-open .consent-card {
+    opacity: 1;
+    transform: none;
+  }
+  .consent-view:not([hidden]) {
+    animation: consent-view-in 0.3s ease both;
+  }
+  @keyframes consent-view-in {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+  }
+
+  .consent-btn {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .consent-btn-solid {
+    background: var(--color-bronze);
+    color: var(--color-ink);
+    border: 2px solid var(--color-bronze);
+  }
+  .consent-btn-solid:hover {
+    background: var(--color-bronze-300);
+    border-color: var(--color-bronze-300);
+  }
+  .consent-btn-ghost {
+    background: transparent;
+    color: #fff;
+    border: 2px solid rgb(255 255 255 / 0.55);
+  }
+  .consent-btn-ghost:hover {
+    border-color: #fff;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .consent-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.18);
+    transition: background-color 0.25s ease;
+  }
+  .consent-switch::before {
+    /* grössere Klickfläche (44px) */
+    content: '';
+    position: absolute;
+    inset: -0.5rem;
+  }
+  .consent-switch-knob {
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+    transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  .consent-switch[aria-checked='true'] {
+    background: var(--color-bronze);
+  }
+  .consent-switch[aria-checked='true'] .consent-switch-knob {
+    transform: translateX(1.25rem);
+  }
+
+  .consent-details summary {
+    list-style: none;
+  }
+  .consent-details summary::-webkit-details-marker {
+    display: none;
+  }
+  .consent-chevron {
+    display: inline-block;
+    font-size: 1.1em;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+  .consent-details[open] .consent-chevron {
+    transform: rotate(90deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .consent-card,
+    .consent.is-open .consent-card {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+    .consent-view:not([hidden]) {
+      animation: none;
+    }
+  }
+</style>
