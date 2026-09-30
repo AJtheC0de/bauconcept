@@ -25,8 +25,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
 <div class="rail" data-rail data-autoplay={autoplay || undefined} data-mobile-query={railMobileQuery[breakpoint]} style={autoplay ? `--rail-interval:${autoplay}ms` : undefined}>
+  <!-- overflow-y-hidden: sonst wird overflow-y automatisch «auto» und senkrechtes Wischen scrollt die Leiste statt der Seite -->
   <ul
-    class:list={['rail-track -mx-4 flex snap-x snap-mandatory scroll-px-4 overflow-x-auto overscroll-x-contain px-4 pb-1', gap, railTrackClass[breakpoint], gridClass]}
+    class:list={['rail-track -mx-4 flex snap-x snap-mandatory scroll-px-4 overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 pb-1', gap, railTrackClass[breakpoint], gridClass]}
     aria-label={`${label} – auf Mobilgeräten seitlich wischen`}
     tabindex="0"
     data-rail-track
