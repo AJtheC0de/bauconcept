@@ -1,15 +1,58 @@
 ---
+/**
+ * Mobile Schnellkontakt-Pille (unter md): schwebt unten mittig, Glas-Optik.
+ * Nach 4 s ohne Scrollen wird sie halbtransparent, bei Scrollen/Berührung/Fokus wieder voll sichtbar.
+ */
 import { site } from '../config/site';
 import Icon from './Icon.astro';
 ---
 
-<div class="vt-mobilebar fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-white/10 bg-ink pb-[env(safe-area-inset-bottom)] md:hidden">
-  <a href={site.phone.href} class="flex min-h-14 items-center justify-center gap-2 font-display text-lg font-semibold uppercase tracking-wider text-white no-underline">
-    <Icon name="phone" class="size-5 text-bronze" />
+<div class="mobilebar vt-mobilebar fixed left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full p-1 md:hidden" data-mobilebar>
+  <a href={site.phone.href} class="flex min-h-11 items-center justify-center gap-2 rounded-full px-5 font-display text-base font-semibold uppercase tracking-wider text-white no-underline active:bg-white/10">
+    <Icon name="phone" class="size-[1.125rem] text-bronze-300" />
     Anrufen
   </a>
-  <a href="/kontakt/" class="flex min-h-14 items-center justify-center gap-2 bg-bronze font-display text-lg font-semibold uppercase tracking-wider text-ink no-underline">
-    <Icon name="mail" class="size-5" />
+  <a href="/kontakt/" class="flex min-h-11 items-center justify-center gap-2 rounded-full bg-bronze px-5 font-display text-base font-semibold uppercase tracking-wider text-ink no-underline active:bg-bronze-300">
+    <Icon name="mail" class="size-[1.125rem]" />
     Anfragen
   </a>
 </div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-mobilebar]');
+  if (bar) {
+    let timer = 0;
+    const wake = () => {
+      bar.classList.remove('is-idle');
+      clearTimeout(timer);
+      timer = window.setTimeout(() => bar.classList.add('is-idle'), 4000);
+    };
+    addEventListener('scroll', wake, { passive: true });
+    bar.addEventListener('touchstart', wake, { passive: true });
+    bar.addEventListener('focusin', wake);
+    wake();
+  }
+</script>
+
+<style>
+  .mobilebar {
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    /* Glas: dunkel getönt, Hintergrund weichgezeichnet, feine Lichtkante oben */
+    background: rgb(26 26 26 / 0.72);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.18),
+      0 12px 32px -10px rgb(0 0 0 / 0.5);
+    transition: opacity 0.5s ease;
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .mobilebar {
+      background: rgb(26 26 26 / 0.94);
+    }
+  }
+  .mobilebar.is-idle:not(:focus-within) {
+    opacity: 0.45;
+  }
+</style>
