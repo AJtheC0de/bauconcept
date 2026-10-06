@@ -26,8 +26,8 @@ const breadcrumbs = [
 const facts = [
   { k: 'Ort', v: d.ort },
   { k: 'Jahr', v: d.jahr },
-  ...(d.auftraggeber ? [{ k: 'Auftraggeber', v: d.auftraggeber }] : []),
-];
+  { k: 'Auftraggeber', v: d.auftraggeber },
+].filter((f): f is { k: string; v: string } => !!f.v);
 const firstService = d.leistungen[0];
 ---
 

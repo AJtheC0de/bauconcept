@@ -17,14 +17,11 @@ const projekte = defineCollection({
       title: z.string(),
       /** Kurzbeschreibung für Karten und Meta-Description (max. 155 Zeichen) */
       description: z.string().max(155),
-      ort: z.string(),
-      jahr: z.string(),
+      /** Nur eintragen, wenn vom Kunden bestätigt – sonst weglassen (wird dann nicht angezeigt) */
+      ort: z.string().optional(),
+      jahr: z.string().optional(),
       auftraggeber: z.string().optional(),
       leistungen: z.array(z.enum(serviceSlugs)).min(1),
-      // Kartenfelder
-      aufgabe: z.string(),
-      eigeneLeistung: z.string(),
-      ergebnis: z.string(),
       cover: media,
       galerie: z.array(media).default([]),
       /** Auf der Startseite zeigen */
