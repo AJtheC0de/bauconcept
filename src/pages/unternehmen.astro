@@ -8,7 +8,6 @@ import SectionHeader from '../components/SectionHeader.astro';
 import ContactPerson from '../components/ContactPerson.astro';
 import ServiceArea from '../components/ServiceArea.astro';
 import CtaSection from '../components/CtaSection.astro';
-import StatsBand from '../components/StatsBand.astro';
 import { site } from '../config/site';
 import { photos } from '../data/photos';
 import { ph } from '../lib/text';
@@ -18,7 +17,7 @@ const breadcrumbs = [
   { name: 'Unternehmen', path: '/unternehmen/' },
 ];
 const values = [
-  { icon: 'pin', title: 'Regional', text: 'Unser Sitz ist in Zug. Wir kennen die Gemeinden, die Wege und die Abläufe vor Ort.' },
+  { icon: 'pin', title: 'Regional', text: 'Unser Sitz ist in Zug, im Einsatz sind wir in der ganzen Zentralschweiz und im Kanton Zürich. Wir kennen die Wege und die Abläufe vor Ort.' },
   { icon: 'handshake', title: 'Verlässlich', text: 'Was wir zusagen, halten wir ein – beim Termin, bei der Offerte und bei der Ausführung.' },
   { icon: 'user', title: 'Persönlich', text: 'Sie haben einen festen Ansprechpartner, der Ihr Projekt kennt und erreichbar ist.' },
 ] as const;
@@ -56,8 +55,6 @@ const principles = ['Kompetent.', 'Termingerecht.', 'Qualitätsbewusst.'];
       <Media image={photos.unternehmen.src} alt={photos.unternehmen.alt} label="Foto: Auf der Baustelle" sizes="(min-width: 1024px) 50vw, 100vw" />
     </div>
   </section>
-
-  <StatsBand />
 
   <Diagonal from="white" to="ink" flip />
   <section class="section bg-ink text-white" aria-labelledby="slogan">

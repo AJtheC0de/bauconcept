@@ -16,7 +16,6 @@ import JobsTeaser from '../components/JobsTeaser.astro';
 import CtaSection from '../components/CtaSection.astro';
 import TrustBand from '../components/TrustBand.astro';
 import { photos } from '../data/photos';
-import StatsBand from '../components/StatsBand.astro';
 import { services, processSteps } from '../data/services';
 
 const projects = (await getCollection('projekte'))
@@ -102,9 +101,6 @@ const projects = (await getCollection('projekte'))
       </div>
     </div>
   </section>
-
-  <!-- 5b Kennzahlen -->
-  <StatsBand />
 
   <!-- 6 Ablauf -->
   <Diagonal from="white" to="ink" flip />
