@@ -50,21 +50,11 @@ export const site = {
 
   // Einsatzgebiet: Sitz Zug + bediente Gemeinden (vom Kunden zu bestätigen)
   serviceArea: {
-    region: 'Kanton Zug',
-    municipalities: [
-      'Zug',
-      'Baar',
-      'Cham',
-      'Steinhausen',
-      'Hünenberg',
-      'Risch-Rotkreuz',
-      'Walchwil',
-      'Menzingen',
-      'Neuheim',
-      'Oberägeri',
-      'Unterägeri',
-    ],
-    more: '[PLATZHALTER: weitere Regionen, z. B. angrenzende Gemeinden in LU/SZ/ZH]',
+    region: 'Zentralschweiz',
+    /** Kantone ausser Zug (Hauptort-Koordinaten in src/data/geo.ts) */
+    cantons: ['Luzern', 'Schwyz', 'Nidwalden', 'Obwalden', 'Uri', 'Zürich'],
+    /** Gemeinden im Kanton Zug (für Schema.org und die kleinen Punkte auf der Karte) */
+    municipalities: ['Zug', 'Baar', 'Cham', 'Steinhausen', 'Hünenberg', 'Risch-Rotkreuz', 'Walchwil', 'Menzingen', 'Neuheim', 'Oberägeri', 'Unterägeri'],
   },
 
   // Kennzahlen (Startseite + Unternehmen). Werte hier ändern – Zähler und Schema.org passen sich an.

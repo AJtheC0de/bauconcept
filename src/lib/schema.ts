@@ -25,6 +25,8 @@ export const organisationSchema = () => ({
   },
   areaServed: [
     { '@type': 'AdministrativeArea', name: site.serviceArea.region },
+    { '@type': 'AdministrativeArea', name: 'Kanton Zug' },
+    ...site.serviceArea.cantons.map((name) => ({ '@type': 'AdministrativeArea', name: `Kanton ${name}` })),
     ...site.serviceArea.municipalities.map((name) => ({ '@type': 'City', name })),
   ],
   knowsAbout: ['Tiefbau', 'Strassenbau', 'Aushub', 'Erdarbeiten', 'Werkleitungsbau', 'Kanalisationsbau', 'Belagsarbeiten'],

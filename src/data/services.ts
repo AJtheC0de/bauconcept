@@ -42,7 +42,7 @@ export const services: Service[] = [
     },
     h1: 'Aushub & Erdarbeiten in Zug',
     intro: [
-      'Jedes Bauwerk beginnt im Boden. Bevor gebaut wird, muss der Baugrund ausgehoben, geprüft und tragfähig vorbereitet sein. Genau hier setzen wir an: Wir übernehmen Aushub und Erdarbeiten für Neubauten, Umbauten und Umgebungsarbeiten in Zug und Umgebung.',
+      'Jedes Bauwerk beginnt im Boden. Bevor gebaut wird, muss der Baugrund ausgehoben, geprüft und tragfähig vorbereitet sein. Genau hier setzen wir an: Wir übernehmen Aushub und Erdarbeiten für Neubauten, Umbauten und Umgebungsarbeiten in Zug, der ganzen Zentralschweiz und im Kanton Zürich.',
       'Ob Einfamilienhaus, Garagenzufahrt oder Leitungsgraben: Wir klären vorab, wie viel Material bewegt wird, wohin es geht und was wieder eingebaut werden kann. So bleiben Ablauf und Kosten nachvollziehbar.',
     ],
     tasks: [

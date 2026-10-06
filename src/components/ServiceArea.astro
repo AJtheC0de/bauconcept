@@ -1,44 +1,45 @@
 ---
 /**
- * Einsatzgebiet: Liste mit Luftlinie ab Zug + schematische Karte (echte Koordinaten, Seen nur grob).
- * Liste und Karte heben sich gegenseitig hervor (Hover/Fokus).
+ * Einsatzgebiet: Standort Zug + Kantone der Zentralschweiz (Luftlinie ab Zug bis Hauptort) und schematische Karte
+ * (echte Koordinaten, Seen nur grob). Liste und Karte heben sich gegenseitig hervor (Hover/Fokus).
  */
 import { site, fullAddress } from '../config/site';
-import { origin, towns, lakes, distanceKm, project, viewBox } from '../data/geo';
-import { ph } from '../lib/text';
+import { origin, cantons, towns, lakes, distanceKm, project, viewBox, UNITS_PER_KM } from '../data/geo';
 import Icon from './Icon.astro';
 
 const area = site.serviceArea;
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9äöü]+/g, '-');
+const ZUG = 'kanton-zug';
 
-const list = area.municipalities
-  .filter((m) => m !== origin.name)
+const list = area.cantons
   .map((name) => {
-    const t = towns[name];
-    return { name, slug: slug(name), km: t ? distanceKm(origin, t) : undefined, t };
+    const c = cantons[name];
+    return { name, slug: slug(name), hauptort: c?.hauptort, km: c ? distanceKm(origin, c) : undefined, c };
   })
-  .sort((a, b) => (a.km ?? 99) - (b.km ?? 99));
+  .sort((a, b) => (a.km ?? 999) - (b.km ?? 999));
 
 const o = project(origin.lat, origin.lon);
+const off = { r: { dx: 5, dy: 1.6, a: 'start' }, l: { dx: -5, dy: 1.6, a: 'end' }, t: { dx: 0, dy: -5, a: 'middle' }, b: { dx: 0, dy: 8, a: 'middle' } } as const;
 const pts = list
-  .filter((l) => l.t)
-  .map((l, i) => {
-    const p = project(l.t!.lat, l.t!.lon);
-    const off = { r: { dx: 5, dy: 1.6, a: 'start' }, l: { dx: -5, dy: 1.6, a: 'end' }, t: { dx: 0, dy: -5, a: 'middle' }, b: { dx: 0, dy: 8, a: 'middle' } }[l.t!.label];
-    return { ...l, ...p, off, i };
-  });
+  .filter((l) => l.c)
+  .map((l, i) => ({ ...l, ...project(l.c!.lat, l.c!.lon), off: off[l.c!.label], i }));
+// Zuger Gemeinden: kleine Punkte ohne Beschriftung rund um den Standort
+const townPts = area.municipalities
+  .filter((m) => m !== origin.name && towns[m])
+  .map((m) => project(towns[m].lat, towns[m].lon));
 const lakePath = (pts: readonly (readonly number[])[]) =>
   'M' + pts.map(([lat, lon]) => { const p = project(lat, lon); return `${p.x.toFixed(1)} ${p.y.toFixed(1)}`; }).join(' L') + 'Z';
-const ringKm = [5, 10];
+const ringKm = [10, 20, 30];
+const label = (lat: number, lon: number) => project(lat, lon);
 ---
 
 <section class="section bg-white" aria-labelledby="einsatzgebiet">
   <div class="container-x grid grid-cols-1 items-start gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16" data-area>
     <div>
       <p class="kicker text-bronze-700">Einsatzgebiet</p>
-      <h2 id="einsatzgebiet">Zuhause in Zug</h2>
+      <h2 id="einsatzgebiet">Von Zug aus in der ganzen Zentralschweiz</h2>
       <p class="mt-5 text-lg text-muted">
-        Unser Standort ist in Zug. Kurze Wege bedeuten schnelle Besichtigungen, kurze Anfahrten für Maschinen und einen Ansprechpartner, der die Region kennt.
+        Unser Standort ist in Zug, mitten in der Zentralschweiz. Von hier aus sind wir mit Team und Maschinen schnell vor Ort, im Kanton Zug genauso wie in Luzern, Schwyz, Nid- und Obwalden, Uri und im Kanton Zürich.
       </p>
 
       <div class="mt-8 flex items-center gap-4 bg-ink p-4 pr-6 text-white">
@@ -49,41 +50,50 @@ const ringKm = [5, 10];
         </span>
       </div>
 
-      <h3 class="mt-10 text-xl">Gemeinden im Kanton Zug</h3>
+      <h3 class="mt-10 text-xl">Hier sind wir im Einsatz</h3>
       <ul class="mt-4 grid grid-cols-1 border-t border-line xs:grid-cols-2 xs:gap-x-8">
+        <li class="area-row flex items-baseline justify-between gap-3 border-b border-line py-2.5" data-town={ZUG}>
+          <span class="font-medium">Kanton Zug</span>
+          <span class="text-sm text-muted">alle Gemeinden</span>
+        </li>
         {list.map((l) => (
           <li class="area-row flex items-baseline justify-between gap-3 border-b border-line py-2.5" data-town={l.slug}>
-            <span class="font-medium">{l.name}</span>
-            {l.km !== undefined && <span class="text-sm tabular-nums text-muted">ca. {Math.max(1, Math.round(l.km))} km</span>}
+            <span class="font-medium">Kanton {l.name}</span>
+            {l.km !== undefined && <span class="text-sm tabular-nums text-muted">ca. {Math.round(l.km)} km</span>}
           </li>
         ))}
       </ul>
-      <p class="mt-4 text-sm text-muted">Distanz = Luftlinie ab Zug.</p>
-      <p class="mt-5 text-muted" set:html={`Ausserdem: ${ph(area.more)}`} />
+      <p class="mt-4 text-sm text-muted">Distanz = Luftlinie ab Zug bis zum Hauptort.</p>
       <p class="mt-5"><a href="/kontakt/" class="link">Ihr Ort ist nicht dabei? Fragen Sie uns trotzdem</a> <Icon name="arrow" class="inline size-5 text-bronze-700" /></p>
     </div>
 
     <!-- Schematische Karte -->
     <figure class="area-map relative bg-ink p-4 sm:p-6 lg:sticky lg:top-28" data-animate>
       <svg viewBox={`0 0 ${viewBox.w} ${viewBox.h}`} class="h-auto w-full" role="img" aria-labelledby="area-map-title">
-        <title id="area-map-title">Schematische Karte: Standort Zug und bediente Gemeinden im Kanton Zug</title>
+        <title id="area-map-title">Schematische Karte: Standort Zug und Einsatzgebiet in der Zentralschweiz und im Kanton Zürich</title>
         <defs>
           <pattern id="area-grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M20 0H0V20" fill="none" stroke="rgb(255 255 255 / 0.04)" stroke-width="0.5" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#area-grid)" />
-        <path d={lakePath(lakes.zugersee)} fill="rgb(255 255 255 / 0.06)" stroke="rgb(255 255 255 / 0.12)" stroke-width="0.6" stroke-linejoin="round" />
-        <path d={lakePath(lakes.aegerisee)} fill="rgb(255 255 255 / 0.06)" stroke="rgb(255 255 255 / 0.12)" stroke-width="0.6" stroke-linejoin="round" />
-        <text x={project(47.095, 8.492).x} y={project(47.095, 8.492).y} fill="rgb(255 255 255 / 0.28)" font-size="4" font-style="italic" text-anchor="middle" transform={`rotate(-78 ${project(47.095, 8.492).x} ${project(47.095, 8.492).y})`}>Zugersee</text>
+        {Object.values(lakes).map((l) => (
+          <path d={lakePath(l)} fill="rgb(255 255 255 / 0.06)" stroke="rgb(255 255 255 / 0.12)" stroke-width="0.6" stroke-linejoin="round" />
+        ))}
+        <text x={label(47.105, 8.488).x} y={label(47.105, 8.488).y} fill="rgb(255 255 255 / 0.28)" font-size="3.6" font-style="italic" text-anchor="middle" transform={`rotate(-78 ${label(47.105, 8.488).x} ${label(47.105, 8.488).y})`}>Zugersee</text>
+        <text x={label(47.005, 8.53).x} y={label(47.005, 8.53).y} fill="rgb(255 255 255 / 0.28)" font-size="3.6" font-style="italic" text-anchor="middle">Vierwaldstättersee</text>
 
         <g class="area-rings">
           {ringKm.map((km) => (
             <>
-              <circle cx={o.x} cy={o.y} r={km * 10} fill="none" stroke="var(--color-bronze)" stroke-opacity="0.35" stroke-width="0.6" stroke-dasharray="2 2" />
-              <text x={o.x + 1.5} y={o.y + km * 10 - 1.8} fill="var(--color-bronze-300)" fill-opacity="0.85" font-size="4" font-family="Barlow, sans-serif">{km} km</text>
+              <circle cx={o.x} cy={o.y} r={km * UNITS_PER_KM} fill="none" stroke="var(--color-bronze)" stroke-opacity="0.35" stroke-width="0.6" stroke-dasharray="2 2" />
+              <text x={o.x + 1.5} y={o.y + km * UNITS_PER_KM - 1.8} fill="var(--color-bronze-300)" fill-opacity="0.85" font-size="4" font-family="Barlow, sans-serif">{km} km</text>
             </>
           ))}
+        </g>
+
+        <g class="area-towns" data-town={ZUG}>
+          {townPts.map((p) => <circle cx={p.x} cy={p.y} r="1.1" />)}
         </g>
 
         <g class="area-lines">
@@ -96,7 +106,7 @@ const ringKm = [5, 10];
           {pts.map((p) => (
             <g class="area-dot" data-town={p.slug} style={`--i:${p.i}`}>
               <circle cx={p.x} cy={p.y} r="2.2" />
-              <text x={p.x + p.off.dx} y={p.y + p.off.dy} text-anchor={p.off.a} font-size="4.6">{p.name}</text>
+              <text x={p.x + p.off.dx} y={p.y + p.off.dy} text-anchor={p.off.a} font-size="4.6">{p.hauptort}</text>
             </g>
           ))}
         </g>
@@ -104,7 +114,7 @@ const ringKm = [5, 10];
         <g class="area-origin">
           <circle class="area-pulse" cx={o.x} cy={o.y} r="4" fill="var(--color-bronze)" />
           <circle cx={o.x} cy={o.y} r="3.6" fill="var(--color-bronze)" stroke="var(--color-ink)" stroke-width="1.2" />
-          <text x={o.x - 6} y={o.y + 1.8} text-anchor="end" fill="#fff" font-size="6" font-weight="700" font-family="Barlow Condensed, sans-serif" letter-spacing="0.6">ZUG</text>
+          <text x={o.x + 6} y={o.y - 4} fill="#fff" font-size="6" font-weight="700" font-family="Barlow Condensed, sans-serif" letter-spacing="0.6">ZUG</text>
         </g>
       </svg>
       <figcaption class="mt-3 flex items-center justify-between gap-4 text-xs text-muted-dark">
@@ -150,6 +160,13 @@ const ringKm = [5, 10];
   .area-lines line.is-hl {
     stroke: var(--color-bronze);
     stroke-width: 0.9;
+  }
+  .area-towns circle {
+    fill: rgb(255 255 255 / 0.35);
+    transition: fill 0.25s;
+  }
+  .area-towns.is-hl circle {
+    fill: var(--color-bronze);
   }
   .area-dot circle {
     fill: #fff;
@@ -199,6 +216,13 @@ const ringKm = [5, 10];
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
     transition: stroke-dashoffset 0.7s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--i) * 70ms + 300ms);
+  }
+  :global(.is-armed).area-map .area-towns {
+    opacity: 0;
+    transition: opacity 0.6s ease 0.4s;
+  }
+  :global(.is-active).area-map .area-towns {
+    opacity: 1;
   }
   :global(.is-armed).area-map .area-dot {
     opacity: 0;
