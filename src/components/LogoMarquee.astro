@@ -15,8 +15,9 @@ const marquee = partners.length >= MARQUEE_MIN;
 const base: Partner[] = marquee
   ? Array.from({ length: Math.ceil(8 / partners.length) }, () => partners).flat()
   : partners;
-// Optisch gleich gross: gleiche Fläche statt gleiche Höhe (breite Logos werden niedriger)
-const logoHeight = (p: Partner) => (p.logo ? Math.round(Math.min(44, Math.max(24, Math.sqrt(5900 / (p.logo.width / p.logo.height))))) : 0);
+// Alle Logos gleich hoch (Kundenwunsch: Schriftzüge sollen gleich gross wirken)
+const LOGO_HEIGHT = 36;
+const logoHeight = (p: Partner) => (p.logo ? LOGO_HEIGHT : 0);
 ---
 
 <div class:list={['partners py-9', marquee ? 'is-marquee' : 'is-static']} role="region" aria-label={label}>

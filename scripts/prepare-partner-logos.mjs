@@ -2,6 +2,7 @@
 //   farbige Flächen → weiss
 //   weisse Formen INNERHALB der grössten farbigen Fläche (z. B. «A» im Anliker-Quadrat) → ausgestanzt (transparent)
 //   bereits weisse Logos bleiben unverändert
+//   cropLeft: linken Anteil abschneiden (z. B. Bildmarke weg, nur Schriftzug – damit alle Schriftzüge gleich hoch wirken)
 // Aufruf: node scripts/prepare-partner-logos.mjs   (Quellen: logos/, Ziel: src/assets/partner/)
 import sharp from 'sharp';
 import { mkdirSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { mkdirSync } from 'node:fs';
 const OUT = 'src/assets/partner';
 const HEIGHT = 200; // Arbeitshöhe in px (Anzeige ca. 30–45 px, genügt für 2x/3x)
 const logos = [
-  { src: 'logos/AnlikerLogo.png', out: 'anliker.png' },
+  { src: 'logos/AnlikerLogo.png', out: 'anliker.png', cropLeft: 0.3 },
   { src: 'logos/walologo.png', out: 'walo.png' },
   { src: 'logos/Loetscher-Tiefbau_RGB-ohne-HG.png', out: 'loetscher-tiefbau.png' },
 ];
@@ -77,6 +78,12 @@ for (const l of logos) {
       data[i] = data[i + 1] = data[i + 2] = 255;
     }
 
-  await sharp(data, { raw: info }).png({ compressionLevel: 9 }).toFile(`${OUT}/${l.out}`);
-  console.log(`${l.out}: ${W}x${H}${box ? ` (Fläche ausgestanzt: ${box.x1 - box.x0}x${box.y1 - box.y0})` : ''}`);
+  let out = sharp(data, { raw: info });
+  if (l.cropLeft) {
+    const left = Math.round(W * l.cropLeft);
+    const cropped = await out.extract({ left, top: 0, width: W - left, height: H }).png().toBuffer();
+    out = sharp(await sharp(cropped).trim().png().toBuffer()).resize({ height: HEIGHT });
+  }
+  const res = await out.png({ compressionLevel: 9 }).toFile(`${OUT}/${l.out}`);
+  console.log(`${l.out}: ${res.width}x${res.height}${box ? ` (Fläche ausgestanzt: ${box.x1 - box.x0}x${box.y1 - box.y0})` : ''}`);
 }
