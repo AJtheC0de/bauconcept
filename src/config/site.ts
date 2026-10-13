@@ -19,9 +19,9 @@ export const site = {
   },
 
   phone: {
-    display: '078 605 59 82',
-    href: 'tel:+41786055982',
-    e164: '+41786055982',
+    display: '041 212 99 12',
+    href: 'tel:+41412129912',
+    e164: '+41412129912',
   },
 
   // Vom Kunden zu bestätigen – auf der Visitenkarte steht bauconcept-schweiz@gmx.ch
