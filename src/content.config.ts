@@ -42,6 +42,8 @@ const jobs = defineCollection({
     eintritt: z.string(),
     aufgaben: z.array(z.string()),
     profil: z.array(z.string()),
+    /** Optional: Bewerbung per E-Mail (Button «Jetzt per E-Mail bewerben» mit vorausgefülltem Betreff) */
+    bewerbung: z.object({ email: z.string().email(), betreff: z.string() }).optional(),
     /** false = Stelle ausgeblendet */
     aktiv: z.boolean().default(true),
     order: z.number().default(0),

@@ -10,3 +10,5 @@ dist/
 Visitenkarte*.jpeg
 Logo.png
 lighthouse/
+# Originalfotos der Projekte (bearbeitete Versionen liegen in src/assets/projekte/)
+Projekte/

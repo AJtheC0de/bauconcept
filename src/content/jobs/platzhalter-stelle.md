@@ -10,7 +10,7 @@ profil:
   - '[PLATZHALTER: Ausbildung / Erfahrung]'
   - '[PLATZHALTER: Führerausweis Kat. …]'
   - '[PLATZHALTER: Sprachkenntnisse]'
-aktiv: true
+aktiv: false # Vorlage für neue Stellen – kopieren, ausfüllen, aktiv: true
 order: 1
 ---
 
